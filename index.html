@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OmniSearch — Precision Document & Media Engine</title>
+  <style>
+    :root {
+      --bg: #090b11;
+      --surface: rgba(18, 22, 35, 0.75);
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-hover: rgba(28, 34, 52, 0.95);
+      --accent: #4f46e5;
+      --accent-hover: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.25rem 4rem;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.16), transparent 45%),
+        radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.06), transparent 30%);
+      background-attachment: fixed;
+    }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .brand {
+      font-size: 1.25rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand span {
+      background: linear-gradient(135deg, #a5b4fc, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions { display: flex; gap: 0.5rem; }
+
+    .icon-btn {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      border-radius: 8px;
+      padding: 0.5rem 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: var(--surface-hover);
+    }
+
+    /* Category Bar */
+    .category-bar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 0.35rem;
+      background: rgba(14, 17, 27, 0.6);
+      border: 1px solid var(--surface-border);
+      padding: 0.3rem;
+      border-radius: 100px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.45rem 1.1rem;
+      border-radius: 100px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+    }
+    .tab-btn.active { background: var(--accent); color: #fff; }
+
+    .btn-add-cat {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed var(--surface-border);
+      color: var(--text-muted);
+      padding: 0.45rem 0.9rem;
+      border-radius: 100px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+    }
+    .btn-add-cat:hover { border-color: var(--accent); color: #fff; }
+
+    /* Search Bar with Open Directory Mode */
+    .search-wrapper { margin-bottom: 0.85rem; }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--surface-border);
+      border-radius: 100px;
+      padding: 0.35rem 0.5rem 0.35rem 1.25rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-bar:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-glow);
+    }
+    .search-bar input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-controls { display: flex; align-items: center; gap: 0.4rem; }
+
+    .od-toggle {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 0.35rem 0.65rem;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .od-toggle:hover { border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+    .od-toggle.active {
+      background: var(--warning);
+      border-color: var(--warning);
+      color: #000;
+    }
+
+    .search-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .search-btn:hover { background: var(--accent-hover); transform: scale(1.04); }
+
+    /* Filters & Noise Scrubber Panel */
+    .filter-panel {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.15rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .filter-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+    }
+    .filter-label {
+      min-width: 60px;
+      padding-top: 0.25rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .chip {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      border-radius: 20px;
+      padding: 0.2rem 0.65rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { border-color: rgba(255, 255, 255, 0.2); color: var(--text); }
+    .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+
+    .exclude-input {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--surface-border);
+      border-radius: 6px;
+      padding: 0.25rem 0.55rem;
+      color: var(--text);
+      font-size: 0.75rem;
+      width: 100%;
+      max-width: 340px;
+      outline: none;
+    }
+    .exclude-input:focus { border-color: var(--accent); }
+
+    /* Status Bar & Engine Matrix */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .direct-search-engines { display: flex; gap: 0.35rem; align-items: center; }
+    .engine-link {
+      color: #a5b4fc;
+      text-decoration: none;
+      font-size: 0.73rem;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .engine-link:hover { background: rgba(99, 102, 241, 0.15); }
+
+    /* Results */
+    .results { display: flex; flex-direction: column; gap: 0.85rem; }
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex;
+      gap: 1.15rem;
+      transition: transform 0.15s, border-color 0.2s, background 0.2s;
+    }
+    .result-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      background: var(--surface-hover);
+      transform: translateY(-2px);
+    }
+    .book-cover {
+      width: 58px;
+      height: 82px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.05);
+      flex-shrink: 0;
+      border: 1px solid var(--surface-border);
+    }
+    .result-content { flex: 1; min-width: 0; }
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.4rem;
+    }
+    .result-title { font-size: 1rem; line-height: 1.35; }
+    .result-title a { color: #cbd5e1; text-decoration: none; font-weight: 600; }
+    .result-title a:hover { color: #a5b4fc; text-decoration: underline; }
+
+    .header-badges { display: flex; gap: 0.35rem; align-items: center; }
+    .badge-direct {
+      background: #059669;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .badge-od {
+      background: var(--warning);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .result-snippet {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+      margin-bottom: 0.65rem;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+    .meta-left { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .source-tag {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 4px;
+      padding: 0.15rem 0.45rem;
+      font-weight: 500;
+    }
+    .rank-tag {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      font-weight: 600;
+      color: #93c5fd;
+    }
+    .meta-tag {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      padding: 0.15rem 0.4rem;
+      color: var(--text-muted);
+    }
+
+    .meta-actions { display: flex; gap: 0.35rem; }
+    .meta-btn {
+      background: transparent;
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      border-radius: 4px;
+      padding: 0.2rem 0.45rem;
+      cursor: pointer;
+      text-decoration: none;
+      font-size: 0.75rem;
+    }
+    .meta-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+
+    .load-more-btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text);
+      border-radius: var(--radius);
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.2s;
+    }
+    .load-more-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+    .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Modals */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: #111420;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 580px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    }
+    .modal-header {
+      padding: 1.15rem 1.4rem;
+      border-bottom: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-body { padding: 1.25rem 1.4rem; overflow-y: auto; flex: 1; }
+    .modal-footer {
+      padding: 1rem 1.4rem;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .form-group { margin-bottom: 1.1rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.35rem;
+      color: var(--text-muted);
+    }
+    .input-field {
+      width: 100%;
+      background: #090a10;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 0.55rem 0.85rem;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .input-field:focus { border-color: var(--accent); }
+
+    /* Site Manager List & Dedicated Toggle Switch */
+    .site-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .site-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--surface-border);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      transition: opacity 0.2s;
+    }
+    .site-item.disabled {
+      opacity: 0.45;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .site-item.disabled .site-domain-text {
+      text-decoration: line-through;
+    }
+
+    /* Switch Component */
+    .switch-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 32px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.15);
+      transition: .2s;
+      border-radius: 18px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 12px;
+      width: 12px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--accent); }
+    input:checked + .slider:before { transform: translateX(14px); }
+
+    .site-action-btn {
+      background: transparent;
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      border-radius: 4px;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .site-action-btn:hover { background: var(--surface-hover); color: var(--text); }
+    .site-action-btn.delete:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      font-weight: 500;
+      border: none;
+    }
+    .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--surface-border); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1e2438;
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      transform: translateY(10px);
+      z-index: 2000;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <span>OmniSearch</span>
+      </div>
+      <div class="header-actions">
+        <button id="manage-sites-btn" class="icon-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Manage & Rank Sites
+        </button>
+        <button id="settings-btn" class="icon-btn" title="Global Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+      </div>
+    </header>
+
+    <!-- Dynamic Category Bar -->
+    <div class="category-bar-wrapper">
+      <div class="category-tabs" id="category-tabs"></div>
+      <button class="btn-add-cat" id="add-category-btn">+ New Category</button>
+    </div>
+
+    <!-- Search Input & Open Directory Toggle -->
+    <div class="search-wrapper">
+      <div class="search-bar">
+        <input type="text" id="query" placeholder="Search keywords..." autocomplete="off" autofocus />
+        <div class="search-controls">
+          <button id="od-toggle" class="od-toggle" title="Search raw web server index directories (zero ads)">
+            📂 Open Directories
+          </button>
+          <button id="go" class="search-btn" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Panel with Real-time Noise Scrubber -->
+    <div class="filter-panel">
+      <div class="filter-row">
+        <span class="filter-label">Format</span>
+        <div class="chips" id="format-chips"></div>
+      </div>
+      <div class="filter-row" id="source-filter-row">
+        <span class="filter-label">Source</span>
+        <div class="chips" id="source-chips"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Scrub</span>
+        <input type="text" id="exclude-filter" class="exclude-input" placeholder="Exclude terms: summary, review, sparknotes..." />
+      </div>
+    </div>
+
+    <!-- Status Bar & Multi-Engine Escape Hatch -->
+    <div class="status-bar" id="status-bar" style="display: none;">
+      <div>
+        <span id="result-summary">Ready</span>
+        <span id="timing-badge" style="margin-left:0.5rem; color:var(--text-dim);"></span>
+      </div>
+      <div class="direct-search-engines">
+        <span>Bypass Matrix:</span>
+        <a href="#" id="open-google" class="engine-link" target="_blank" rel="noopener">Google</a>
+        <a href="#" id="open-ddg" class="engine-link" target="_blank" rel="noopener">DuckDuckGo</a>
+        <a href="#" id="open-yandex" class="engine-link" target="_blank" rel="noopener">Yandex</a>
+      </div>
+    </div>
+
+    <div class="results" id="results"></div>
+    <button id="load-more-btn" class="load-more-btn" style="display:none;">Load More Results</button>
+    <div id="alert-container"></div>
+  </div>
+
+  <!-- Create Category Modal -->
+  <div class="modal" id="category-modal">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 style="font-size: 1.15rem;">Create New Category</h2>
+        <button id="close-cat-modal" class="site-action-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Category Label (e.g. Comics & Manga)</label>
+          <input type="text" id="cat-label-input" class="input-field" placeholder="Comics & Manga" />
+        </div>
+        <div class="form-group">
+          <label>Icon / Emoji</label>
+          <input type="text" id="cat-icon-input" class="input-field" placeholder="💬" style="width: 80px;" />
+        </div>
+        <div class="form-group">
+          <label>File Formats (Comma-separated)</label>
+          <input type="text" id="cat-formats-input" class="input-field" placeholder="cbz, cbr, pdf" />
+        </div>
+        <div class="form-group">
+          <label>Initial Domains (Comma-separated)</label>
+          <input type="text" id="cat-domains-input" class="input-field" placeholder="archive.org, getcomics.org" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-cat-btn" class="btn btn-secondary">Cancel</button>
+        <button id="save-cat-btn" class="btn btn-primary">Create Category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Manager Modal -->
+  <div class="modal" id="site-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 style="font-size: 1.15rem;">Manage Sites: <span id="modal-cat-title" style="color:#a5b4fc;"></span></h2>
+        <button id="close-site-modal" class="site-action-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.85rem;">
+          <p style="font-size: 0.8rem; color: var(--text-muted);">
+            Use switch to <strong>toggle ON/OFF</strong>. Rank with arrows.
+          </p>
+          <button id="delete-cat-btn" class="btn btn-danger" style="font-size:0.75rem; padding:0.3rem 0.6rem; display:none;">Delete Category</button>
+        </div>
+        <div class="site-list" id="site-list"></div>
+        <div style="display:flex; gap:0.5rem; margin-bottom:1.25rem;">
+          <input type="text" id="new-site-input" class="input-field" placeholder="Add domain (e.g. arxiv.org)" />
+          <button id="add-site-btn" class="btn btn-primary" style="flex-shrink:0;">Add Site</button>
+        </div>
+        <div style="border-top:1px solid var(--surface-border); padding-top:1rem; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.8rem; color:var(--text-dim);">Config Backup</span>
+          <div style="display:flex; gap:0.4rem;">
+            <button id="export-sites-btn" class="btn btn-secondary" style="font-size:0.75rem;">Export JSON</button>
+            <button id="import-sites-trigger" class="btn btn-secondary" style="font-size:0.75rem;">Import JSON</button>
+            <input type="file" id="import-file-input" style="display:none;" accept=".json" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="reset-sites-btn" class="btn btn-secondary">Reset Category</button>
+        <button id="save-sites-btn" class="btn btn-primary">Apply Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settings-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 style="font-size: 1.15rem;">Engine Preferences & Settings</h2>
+        <button id="close-settings-modal" class="site-action-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Provider Mode</label>
+          <select id="setting-provider-mode" class="input-field">
+            <option value="serper">Serper API (Aggregated in-app results)</option>
+            <option value="direct">Direct Engine (Opens Google / DDG Dork queries)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Serper API Key</label>
+          <input type="password" id="setting-api-key" class="input-field" placeholder="Enter key..." />
+        </div>
+        <div style="border-top:1px solid var(--surface-border); margin: 1rem 0;"></div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+          <div>
+            <div style="font-size:0.85rem; font-weight:600;">Anti-Slop Commercial Shield</div>
+            <div style="font-size:0.72rem; color:var(--text-dim);">Strips Amazon, Goodreads, paywalls & affiliate stores</div>
+          </div>
+          <input type="checkbox" id="setting-anti-slop" />
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+          <div>
+            <div style="font-size:0.85rem; font-weight:600;">Extract Snippet Metadata</div>
+            <div style="font-size:0.72rem; color:var(--text-dim);">Detect file size (MB/KB) and publication year from results</div>
+          </div>
+          <input type="checkbox" id="setting-metadata" />
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:0.85rem; font-weight:600;">Fetch Book Covers (OpenLibrary)</div>
+            <div style="font-size:0.72rem; color:var(--text-dim);">Lazy-loads book thumbnails for eBooks category</div>
+          </div>
+          <input type="checkbox" id="setting-covers" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="save-settings-btn" class="btn btn-primary" style="margin-left:auto;">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">Copied to clipboard</div>
+
+  <script>
+    // ============================================================
+    // CONFIGURATION & DEFAULTS
+    // ============================================================
+    const DEFAULT_CONFIGS = {
+  ebooks: {
+    label: "E-Books",
+    icon: "📚",
+    formats: ["all", "epub", "mobi", "pdf", "azw3"],
+    sites: [
+      { domain: "annas-archive.org", enabled: true },
+      { domain: "annas-archive.se", enabled: true },
+      { domain: "libgen.is", enabled: true },
+      { domain: "libgen.rs", enabled: true },
+      { domain: "libgen.st", enabled: true },
+      { domain: "z-lib.io", enabled: true },
+      { domain: "z-library.se", enabled: true },
+      { domain: "1lib.sk", enabled: true },
+      { domain: "welib.org", enabled: true },
+      { domain: "welib.st", enabled: true },
+      { domain: "oceanofpdf.com", enabled: true },
+      { domain: "pdfcoffee.com", enabled: true },
+      { domain: "pdfdrive.com", enabled: true },
+      { domain: "epdf.pub", enabled: true },
+      { domain: "pdfroom.com", enabled: true },
+      { domain: "dokumen.pub", enabled: true },
+      { domain: "vdoc.pub", enabled: true },
+      { domain: "t.me", enabled: true }
+    ],
+    antiSlop: `-site:amazon.com -site:amazon.co.uk -site:goodreads.com -site:pinterest.com -inurl:preview -inurl:sample -"buy now"`
+  },
+  audiobooks: {
+    label: "Audiobooks",
+    icon: "🎧",
+    formats: ["all", "mp3", "m4b", "m4a"],
+    sites: [
+      { domain: "tokybook.com", enabled: true },
+      { domain: "hdaudiobooks.com", enabled: true },
+      { domain: "bigaudiobooks.com", enabled: true },
+      { domain: "bookaudiobooks.com", enabled: true },
+      { domain: "hotaudiobooks.com", enabled: true },
+      { domain: "galaxyaudiobook.com", enabled: true },
+      { domain: "audiobooklabs.com", enabled: true },
+      { domain: "findaudiobook.com", enabled: true },
+      { domain: "audioaz.com", enabled: true },
+      { domain: "audiobooksbee.com", enabled: true },
+      { domain: "audiobookable.com", enabled: true },
+      { domain: "audiobookss.com", enabled: true },
+      { domain: "goldenaudiobook.co", enabled: true },
+      { domain: "readforme.com", enabled: true },
+      { domain: "appaudiobooks.com", enabled: true },
+      { domain: "litgu.ru", enabled: true },
+      { domain: "audiobb.com", enabled: true },
+      { domain: "audiobookforsoul.net", enabled: true },
+      { domain: "audiobooks4soul.com", enabled: true },
+      { domain: "audiboi.com", enabled: true },
+      { domain: "fantasyaudiobook.com", enabled: true },
+      { domain: "audiobookcloud.com", enabled: true },
+      { domain: "litube.net", enabled: true },
+      { domain: "xaudiobooks.com", enabled: true },
+      { domain: "audiobookbay.li", enabled: true },
+      { domain: "audiobookbay.se", enabled: true },
+      { domain: "audiobookbay.nl", enabled: true },
+      { domain: "audiobookbay.fi", enabled: true },
+      { domain: "forum.mobilism.org", enabled: true },
+      { domain: "t.me", enabled: true }
+    ],
+    antiSlop: `-site:audible.com -site:audible.co.uk -site:audiobooks.com -site:spotify.com -site:storytel.com -"free trial"`
+  },
+  apk: {
+    label: "APKs & Apps",
+    icon: "📱",
+    formats: ["all", "apk", "xapk", "obb"],
+    sites: [
+      { domain: "rockmods.net", enabled: true },
+      { domain: "filecr.com", enabled: true },
+      { domain: "platinmods.com", enabled: true },
+      { domain: "liteapks.com", enabled: true },
+      { domain: "t.me", enabled: true },
+      { domain: "apkmirror.com", enabled: true },
+      { domain: "apkpure.com", enabled: true },
+      { domain: "apkmody.io", enabled: true },
+      { domain: "apkfab.com", enabled: true },
+      { domain: "revdl.com", enabled: true },
+      { domain: "rexdl.com", enabled: true },
+      { domain: "apkdone.com", enabled: true },
+      { domain: "moddroid.com", enabled: true },
+      { domain: "androidrepublic.org", enabled: true },
+      { domain: "androeed.ru", enabled: true },
+      { domain: "happymod.com", enabled: true },
+      { domain: "onhax.net", enabled: true }
+    ],
+    antiSlop: `-site:play.google.com -site:apps.apple.com -inurl:news -inurl:blog -"how to install"`
+  }
+};
+
+    const DEFAULT_SETTINGS = {
+      providerMode: "serper",
+      antiSlop: true,
+      showCovers: true,
+      extractMetadata: true
+    };
+
+    const MAX_PAGE = 5;
+
+    function loadSettings() {
+      const stored = localStorage.getItem("omni_settings_v3");
+      if (stored) {
+        try {
+          return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        } catch (_) {}
+      }
+      return { ...DEFAULT_SETTINGS };
+    }
+
+    // State
+    let state = {
+      category: "ebooks",
+      format: "all",
+      source: "all",
+      query: "",
+      excludeTerms: localStorage.getItem("omni_exclude_terms") || "",
+      openDirectoryMode: false,
+      page: 1,
+      rawResults: [],
+      activeController: null,
+      sites: loadSites(),
+      settings: loadSettings()
+    };
+
+    function validateConfig(data) {
+      if (!data || typeof data !== "object") return false;
+      for (const cat of Object.keys(data)) {
+        const item = data[cat];
+        if (!item || typeof item !== "object") return false;
+        if (!Array.isArray(item.sites) || !Array.isArray(item.formats)) return false;
+        for (const s of item.sites) {
+          if (!s || typeof s.domain !== "string" || typeof s.enabled !== "boolean") return false;
+        }
+      }
+      return true;
+    }
+
+    function loadSites() {
+      const stored = localStorage.getItem("omni_sites_v3");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (validateConfig(parsed)) return parsed;
+        } catch (_) {}
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
+    }
+
+    function saveSites() {
+      localStorage.setItem("omni_sites_v3", JSON.stringify(state.sites));
+    }
+
+    // ============================================================
+    // DOM REFERENCES
+    // ============================================================
+    const $ = id => document.getElementById(id);
+    const queryInput        = $("query");
+    const goBtn             = $("go");
+    const odToggle          = $("od-toggle");
+    const resultsEl         = $("results");
+    const statusBar         = $("status-bar");
+    const resultSummary     = $("result-summary");
+    const timingBadge       = $("timing-badge");
+    const loadMoreBtn       = $("load-more-btn");
+    const alertBox          = $("alert-container");
+    const formatChips       = $("format-chips");
+    const sourceChips       = $("source-chips");
+    const sourceFilterRow   = $("source-filter-row");
+    const categoryTabs      = $("category-tabs");
+    const excludeFilter     = $("exclude-filter");
+    const settingsModal     = $("settings-modal");
+    const siteModal         = $("site-modal");
+    const categoryModal     = $("category-modal");
+    const siteListEl        = $("site-list");
+    const newSiteInput      = $("new-site-input");
+    const modalCatTitle     = $("modal-cat-title");
+    const deleteCatBtn      = $("delete-cat-btn");
+    const toastEl           = $("toast");
+
+    let coverObserver = null;
+
+    // ============================================================
+    // CATEGORY & FILTER RENDERING
+    // ============================================================
+    function renderCategoryTabs() {
+      const cats = Object.keys(state.sites);
+      if (!cats.includes(state.category)) state.category = cats[0] || "ebooks";
+
+      categoryTabs.innerHTML = cats.map(catKey => {
+        const cat = state.sites[catKey];
+        return `
+          <button class="tab-btn ${state.category === catKey ? 'active' : ''}" data-category="${escapeHtml(catKey)}">
+            <span>${escapeHtml(cat.icon || '📁')}</span> ${escapeHtml(cat.label || catKey)}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderFilters() {
+      renderCategoryTabs();
+      const current = state.sites[state.category];
+      if (!current) return;
+
+      // Formats
+      formatChips.innerHTML = current.formats.map(fmt => `
+        <button class="chip ${state.format === fmt ? 'active' : ''}" data-format="${escapeHtml(fmt)}">
+          ${escapeHtml(fmt.toUpperCase())}
+        </button>
+      `).join("");
+
+      // Source Filter row visibility
+      if (state.openDirectoryMode) {
+        sourceFilterRow.style.display = "none";
+      } else {
+        sourceFilterRow.style.display = "flex";
+        const activeSites = current.sites.filter(s => s.enabled);
+        let sourceHTML = `<button class="chip ${state.source === 'all' ? 'active' : ''}" data-source="all">All Sources</button>`;
+        activeSites.forEach(s => {
+          sourceHTML += `<button class="chip ${state.source === s.domain ? 'active' : ''}" data-source="${escapeHtml(s.domain)}">${escapeHtml(s.domain)}</button>`;
+        });
+        sourceChips.innerHTML = sourceHTML;
+      }
+    }
+
+    function syncUrlParams() {
+      const params = new URLSearchParams();
+      if (state.query) params.set("q", state.query);
+      params.set("cat", state.category);
+      if (state.format !== "all") params.set("fmt", state.format);
+      if (state.source !== "all") params.set("src", state.source);
+      if (state.openDirectoryMode) params.set("od", "1");
+      window.history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
+    }
+
+    function buildQueryPayload() {
+      const q = queryInput.value.trim();
+      const current = state.sites[state.category];
+      if (!q || !current) return "";
+
+      const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
+      const slopFilter = (state.settings.antiSlop && current.antiSlop) ? ` ${current.antiSlop}` : "";
+
+      if (state.openDirectoryMode) {
+        const rawFormats = state.format === "all"
+          ? current.formats.filter(f => f !== 'all')
+          : [state.format];
+        const formatClause = rawFormats.length ? `(${rawFormats.join(" OR ")})` : "";
+        return `intitle:"index of" ${formatClause} "${q}" -html -htm -php -asp -jsp`;
+      }
+
+      const activeSites = current.sites.filter(s => s.enabled);
+      const siteClause = activeSites.length ? " (" + activeSites.map(s => `site:${s.domain}`).join(" OR ") + ")" : "";
+      return `${q}${formatSuffix}${siteClause}${slopFilter}`;
+    }
+
+    function updateDirectLinks() {
+      const fullQuery = buildQueryPayload();
+      if (!fullQuery) return;
+
+      $("open-google").href = `https://www.google.com/search?q=${encodeURIComponent(fullQuery)}`;
+      $("open-ddg").href = `https://duckduckgo.com/?q=${encodeURIComponent(fullQuery)}`;
+      $("open-yandex").href = `https://yandex.com/search/?text=${encodeURIComponent(fullQuery)}`;
+    }
+
+    // ============================================================
+    // STRICT HIERARCHY SEARCH ALGORITHM
+    // ============================================================
+    function matchDomainRank(hostname, activeSites) {
+      if (state.openDirectoryMode) return 0;
+      const host = (hostname || "").toLowerCase().trim();
+      for (let i = 0; i < activeSites.length; i++) {
+        const target = activeSites[i].domain.toLowerCase().trim();
+        if (host === target || host.endsWith("." + target)) {
+          return i;
+        }
+      }
+      return 999;
+    }
+
+    async function search(append = false) {
+      const q = queryInput.value.trim();
+      if (!q) return;
+
+      state.query = q;
+      syncUrlParams();
+      updateDirectLinks();
+
+      const apiKey = localStorage.getItem("serper_key") || "";
+      if (state.settings.providerMode === "direct" || !apiKey) {
+        if (!apiKey && state.settings.providerMode === "serper") {
+          showToast("No Serper Key set. Opening Direct Search.");
+        }
+        window.open($("open-google").href, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      if (!append) {
+        state.page = 1;
+        state.rawResults = [];
+      } else {
+        if (state.openDirectoryMode) return;
+        if (state.page >= MAX_PAGE) {
+          showToast(`Reached max search depth (${MAX_PAGE}/${MAX_PAGE}).`);
+          loadMoreBtn.disabled = true;
+          return;
+        }
+        state.page += 1;
+      }
+
+      const current = state.sites[state.category];
+      const activeSites = current.sites.filter(s => s.enabled);
+      if (!activeSites.length && !state.openDirectoryMode) {
+        showAlert("No enabled sources in this category.", "error");
+        return;
+      }
+
+      if (state.activeController) state.activeController.abort();
+      state.activeController = new AbortController();
+
+      if (!append) renderSkeletons();
+      statusBar.style.display = "flex";
+      resultSummary.textContent = state.openDirectoryMode ? "Scanning open server directories..." : "Querying prioritized sources...";
+      timingBadge.textContent = "";
+      alertBox.innerHTML = "";
+
+      const startTime = performance.now();
+      let queryList = [];
+
+      if (state.openDirectoryMode) {
+        const rawFormats = state.format === "all"
+          ? current.formats.filter(f => f !== 'all')
+          : [state.format];
+        const formatClause = rawFormats.length ? `(${rawFormats.join(" OR ")})` : "";
+        queryList = [
+          `intitle:"index of /" ${formatClause} "${q}" -html -htm -php -asp -jsp`,
+          `intitle:"index.of" ${formatClause} "${q}" -html -htm -php -asp -jsp`
+        ];
+      } else {
+        const domains = activeSites.map(s => s.domain);
+        const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
+        const slopFilter = (state.settings.antiSlop && current.antiSlop) ? ` ${current.antiSlop}` : "";
+
+        for (let i = 0; i < domains.length; i += 6) {
+          const chunk = domains.slice(i, i + 6);
+          const siteClause = "(" + chunk.map(d => `site:${d}`).join(" OR ") + ")";
+          queryList.push(`${q}${formatSuffix} ${siteClause}${slopFilter}`);
+        }
+      }
+
+      try {
+        const requests = queryList.map(fullQuery => {
+          return fetch("https://google.serper.dev/search", {
+            method: "POST",
+            signal: state.activeController.signal,
+            headers: {
+              "X-API-KEY": apiKey,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ q: fullQuery, num: 15, page: state.page })
+          }).then(res => {
+            if (!res.ok) throw new Error(`HTTP Error ${res.status}: Check Serper API credentials.`);
+            return res.json();
+          });
+        });
+
+        const responses = await Promise.all(requests);
+        const seenUrls = new Set(state.rawResults.map(r => r.link));
+        let incoming = [];
+
+        responses.forEach(data => {
+          if (data.error) throw new Error(data.error);
+          (data.organic || []).forEach((item, searchEngineIndex) => {
+            if (seenUrls.has(item.link)) return;
+            seenUrls.add(item.link);
+
+            let host = "";
+            try { host = new URL(item.link).hostname.replace(/^www\./, "").toLowerCase(); } catch (_) {}
+
+            let detectedSize = null;
+            let detectedYear = null;
+
+            if (state.settings.extractMetadata) {
+              const sizeMatch = (item.snippet || "").match(/\b\d+(\.\d+)?\s*(KB|MB|GB)\b/i);
+              if (sizeMatch) detectedSize = sizeMatch[0].toUpperCase();
+
+              const yearMatch = (item.title + " " + item.snippet).match(/\b(19\d\d|20[0-2]\d)\b/);
+              if (yearMatch) detectedYear = yearMatch[0];
+            }
+
+            incoming.push({
+              title: item.title || item.link,
+              link: item.link,
+              snippet: item.snippet || "No description provided.",
+              displayLink: host,
+              detectedSize,
+              detectedYear,
+              rankScore: matchDomainRank(host, activeSites),
+              relevanceScore: searchEngineIndex
+            });
+          });
+        });
+
+        const fullPool = append ? [...state.rawResults, ...incoming] : incoming;
+        fullPool.sort((a, b) => {
+          if (a.rankScore !== b.rankScore) return a.rankScore - b.rankScore;
+          return a.relevanceScore - b.relevanceScore;
+        });
+
+        state.rawResults = fullPool;
+        const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+        timingBadge.textContent = `${duration}s`;
+
+        renderResults();
+
+        if (state.openDirectoryMode) {
+          loadMoreBtn.style.display = "none";
+        } else if (incoming.length >= 5 && state.page < MAX_PAGE) {
+          loadMoreBtn.style.display = "block";
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.textContent = `Load More Results (Page ${state.page + 1}/${MAX_PAGE})`;
+        } else if (state.page >= MAX_PAGE) {
+          loadMoreBtn.style.display = "block";
+          loadMoreBtn.disabled = true;
+          loadMoreBtn.textContent = `Max Depth Reached (${MAX_PAGE}/${MAX_PAGE})`;
+        } else {
+          loadMoreBtn.style.display = "none";
+        }
+
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        if (!append) resultsEl.innerHTML = "";
+        loadMoreBtn.style.display = "none";
+        showAlert(err.message, "error");
+      } finally {
+        state.activeController = null;
+      }
+    }
+
+    // ============================================================
+    // RESULTS RENDERER
+    // ============================================================
+    function renderResults() {
+      let items = state.rawResults;
+
+      if (!state.openDirectoryMode && state.source !== "all") {
+        items = items.filter(r => r.displayLink.includes(state.source.toLowerCase()));
+      }
+
+      if (state.excludeTerms.trim()) {
+        const terms = state.excludeTerms.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+        if (terms.length) {
+          items = items.filter(item => {
+            const haystack = (item.title + " " + item.snippet + " " + item.link).toLowerCase();
+            return !terms.some(t => haystack.includes(t));
+          });
+        }
+      }
+
+      if (!items.length) {
+        statusBar.style.display = "flex";
+        resultSummary.textContent = "No matches.";
+        resultsEl.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-dim);">No results found matching your filters.</div>`;
+        return;
+      }
+
+      statusBar.style.display = "flex";
+      resultSummary.textContent = `Showing ${items.length} items (${state.openDirectoryMode ? 'Open Directories' : 'Rank Prioritized'})`;
+
+      resultsEl.innerHTML = items.map((item) => {
+        const isDirect = /\.(epub|pdf|mobi|azw3|apk|xapk|mp3|m4b|cbz|cbr)$/i.test(item.link);
+
+        return `
+          <article class="result-card">
+            ${state.settings.showCovers && state.category === 'ebooks' && !state.openDirectoryMode ? `
+              <img class="book-cover lazy-cover" 
+                   data-title="${escapeHtml(item.title)}" 
+                   src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='58' height='82' fill='%231a2030'%3E%3Crect width='58' height='82'/%3E%3C/svg%3E" 
+                   alt="Cover" />
+            ` : ''}
+            <div class="result-content">
+              <div class="result-header">
+                <h2 class="result-title">
+                  <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
+                </h2>
+                <div class="header-badges">
+                  ${isDirect ? `<span class="badge-direct">DIRECT FILE</span>` : ''}
+                  ${state.openDirectoryMode ? `<span class="badge-od">DIRECTORY</span>` : ''}
+                </div>
+              </div>
+              <p class="result-snippet">${escapeHtml(item.snippet)}</p>
+              <div class="result-meta">
+                <div class="meta-left">
+                  <span class="source-tag">${escapeHtml(item.displayLink)}</span>
+                  ${!state.openDirectoryMode && item.rankScore !== 999 ? `<span class="rank-tag">Rank #${item.rankScore + 1}</span>` : ""}
+                  ${item.detectedSize ? `<span class="meta-tag">💾 ${escapeHtml(item.detectedSize)}</span>` : ""}
+                  ${item.detectedYear ? `<span class="meta-tag">📅 ${escapeHtml(item.detectedYear)}</span>` : ""}
+                </div>
+                <div class="meta-actions">
+                  <button class="meta-btn copy-btn" data-url="${escapeHtml(item.link)}">📋 Copy</button>
+                  <a href="https://web.archive.org/web/*/${escapeHtml(item.link)}" target="_blank" rel="noopener" class="meta-btn">🏛️ Archive</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      if (state.settings.showCovers && state.category === 'ebooks' && !state.openDirectoryMode) {
+        setupCoverObserver();
+      }
+    }
+
+    function setupCoverObserver() {
+      if (coverObserver) coverObserver.disconnect();
+      coverObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            observer.unobserve(img);
+            const title = img.dataset.title;
+            if (title) fetchCover(img, title);
+          }
+        });
+      }, { rootMargin: "150px 0px" });
+
+      document.querySelectorAll(".lazy-cover").forEach(img => coverObserver.observe(img));
+    }
+
+    async function fetchCover(imgEl, rawTitle) {
+      const cleanTitle = rawTitle.replace(/\[.*?\]|\(.*?\)|free download|pdf|epub/gi, "").trim();
+      try {
+        const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(cleanTitle)}&limit=1`);
+        const data = await res.json();
+        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
+          imgEl.src = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-S.jpg`;
+        }
+      } catch (_) {}
+    }
+
+    function renderSkeletons() {
+      resultsEl.innerHTML = Array(3).fill(0).map(() => `
+        <div style="background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius); padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
+          <div style="height:14px; width:50%; background:rgba(255,255,255,0.05); border-radius:4px;"></div>
+          <div style="height:12px; width:90%; background:rgba(255,255,255,0.03); border-radius:4px;"></div>
+        </div>
+      `).join("");
+    }
+
+    // ============================================================
+    // SITE MANAGER & DEDICATED TOGGLE SWITCH
+    // ============================================================
+    function renderSiteManagerList() {
+      const current = state.sites[state.category];
+      if (!current) return;
+
+      modalCatTitle.textContent = `${current.icon || ''} ${current.label || state.category}`;
+      deleteCatBtn.style.display = Object.keys(DEFAULT_CONFIGS).includes(state.category) ? "none" : "block";
+
+      siteListEl.innerHTML = current.sites.map((site, index) => `
+        <div class="site-item ${site.enabled ? '' : 'disabled'}" data-index="${index}">
+          <div style="display:flex; align-items:center; gap:0.6rem;">
+            <!-- Dedicated Switch -->
+            <label class="switch" title="Toggle site ON/OFF">
+              <input type="checkbox" class="site-toggle" ${site.enabled ? "checked" : ""} data-index="${index}" />
+              <span class="slider"></span>
+            </label>
+            <span class="rank-tag">#${index + 1}</span>
+            <span class="site-domain-text" style="font-size:0.85rem;">${escapeHtml(site.domain)}</span>
+            ${!site.enabled ? `<span style="font-size:0.65rem; color:var(--text-dim); border:1px solid var(--surface-border); border-radius:4px; padding:1px 4px;">MUTED</span>` : ''}
+          </div>
+          <div class="site-actions" style="display:flex; gap:0.25rem;">
+            <button class="site-action-btn move-up" ${index === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
+            <button class="site-action-btn move-down" ${index === current.sites.length - 1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
+            <button class="site-action-btn delete" title="Delete site">✕</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // ============================================================
+    // UTILITIES
+    // ============================================================
+    function escapeHtml(s) {
+      return String(s || "").replace(/[&<>"']/g, m => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[m]));
+    }
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(() => toastEl.classList.remove("show"), 2200);
+    }
+    function showAlert(msg, type = "error") {
+      alertBox.innerHTML = `
+        <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; padding: 0.85rem 1.15rem; border-radius: 8px; margin-top: 1rem; font-size: 0.85rem;">
+          ${escapeHtml(msg)}
+        </div>
+      `;
+    }
+
+    // ============================================================
+    // EVENT LISTENERS
+    // ============================================================
+
+    odToggle.addEventListener("click", () => {
+      state.openDirectoryMode = !state.openDirectoryMode;
+      odToggle.classList.toggle("active", state.openDirectoryMode);
+      renderFilters();
+      syncUrlParams();
+      if (queryInput.value.trim()) search();
+    });
+
+    // Scrub noise filter automatically persists
+    excludeFilter.value = state.excludeTerms;
+    excludeFilter.addEventListener("input", e => {
+      state.excludeTerms = e.target.value;
+      localStorage.setItem("omni_exclude_terms", state.excludeTerms);
+      renderResults();
+    });
+
+    categoryTabs.addEventListener("click", e => {
+      const btn = e.target.closest(".tab-btn");
+      if (!btn || btn.dataset.category === state.category) return;
+      state.category = btn.dataset.category;
+      state.format = "all";
+      state.source = "all";
+      renderFilters();
+      if (queryInput.value.trim()) search();
+    });
+
+    $("add-category-btn").addEventListener("click", () => {
+      $("cat-label-input").value = "";
+      $("cat-icon-input").value = "📁";
+      $("cat-formats-input").value = "";
+      $("cat-domains-input").value = "";
+      categoryModal.classList.add("active");
+    });
+    $("close-cat-modal").addEventListener("click", () => categoryModal.classList.remove("active"));
+    $("cancel-cat-btn").addEventListener("click", () => categoryModal.classList.remove("active"));
+
+    $("save-cat-btn").addEventListener("click", () => {
+      const label = $("cat-label-input").value.trim();
+      const icon = $("cat-icon-input").value.trim() || "📁";
+      const rawFormats = $("cat-formats-input").value.trim();
+      const rawDomains = $("cat-domains-input").value.trim();
+
+      if (!label) { alert("Please enter a category name."); return; }
+
+      const slug = label.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+      if (state.sites[slug]) { alert("A category with this key already exists."); return; }
+
+      const formats = ["all", ...new Set(rawFormats.split(",").map(f => f.trim().toLowerCase()).filter(Boolean))];
+      const sites = rawDomains.split(",").map(d => {
+        let domain = d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+        return domain ? { domain, enabled: true } : null;
+      }).filter(Boolean);
+
+      state.sites[slug] = { label, icon, formats, sites, antiSlop: "" };
+      saveSites();
+
+      state.category = slug;
+      categoryModal.classList.remove("active");
+      renderFilters();
+      showToast(`Category "${label}" created!`);
+    });
+
+    deleteCatBtn.addEventListener("click", () => {
+      if (confirm(`Delete the "${state.sites[state.category].label}" category permanently?`)) {
+        delete state.sites[state.category];
+        saveSites();
+        state.category = Object.keys(state.sites)[0] || "ebooks";
+        siteModal.classList.remove("active");
+        renderFilters();
+        showToast("Category deleted.");
+      }
+    });
+
+    formatChips.addEventListener("click", e => {
+      const chip = e.target.closest(".chip");
+      if (!chip || chip.dataset.format === state.format) return;
+      formatChips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      state.format = chip.dataset.format;
+      renderFilters();
+      syncUrlParams();
+      search();
+    });
+
+    sourceChips.addEventListener("click", e => {
+      const chip = e.target.closest(".chip");
+      if (!chip || chip.dataset.source === state.source) return;
+      sourceChips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      state.source = chip.dataset.source;
+      renderFilters();
+      syncUrlParams();
+      renderResults();
+    });
+
+    goBtn.addEventListener("click", () => search());
+    queryInput.addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+    loadMoreBtn.addEventListener("click", () => search(true));
+
+    resultsEl.addEventListener("click", e => {
+      const copyBtn = e.target.closest(".copy-btn");
+      if (copyBtn) {
+        navigator.clipboard.writeText(copyBtn.dataset.url);
+        showToast("Link copied to clipboard!");
+      }
+    });
+
+    // Site Manager Handlers
+    $("manage-sites-btn").addEventListener("click", () => {
+      renderSiteManagerList();
+      siteModal.classList.add("active");
+    });
+    $("close-site-modal").addEventListener("click", () => siteModal.classList.remove("active"));
+
+    siteListEl.addEventListener("click", e => {
+      const item = e.target.closest(".site-item");
+      if (!item) return;
+      const idx = parseInt(item.dataset.index, 10);
+      const sites = state.sites[state.category].sites;
+
+      if (e.target.closest(".move-up") && idx > 0) {
+        [sites[idx - 1], sites[idx]] = [sites[idx], sites[idx - 1]];
+        renderSiteManagerList();
+      } else if (e.target.closest(".move-down") && idx < sites.length - 1) {
+        [sites[idx], sites[idx + 1]] = [sites[idx + 1], sites[idx]];
+        renderSiteManagerList();
+      } else if (e.target.closest(".delete")) {
+        sites.splice(idx, 1);
+        renderSiteManagerList();
+      }
+    });
+
+    // Dedicated Switch Toggle Listener
+    siteListEl.addEventListener("change", e => {
+      if (e.target.classList.contains("site-toggle")) {
+        const idx = parseInt(e.target.dataset.index, 10);
+        state.sites[state.category].sites[idx].enabled = e.target.checked;
+        const siteItem = e.target.closest(".site-item");
+        if (siteItem) {
+          siteItem.classList.toggle("disabled", !e.target.checked);
+        }
+      }
+    });
+
+    $("add-site-btn").addEventListener("click", () => {
+      let val = newSiteInput.value.trim().toLowerCase();
+      val = val.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+      if (!val) return;
+
+      const sites = state.sites[state.category].sites;
+      if (!sites.some(s => s.domain === val)) {
+        sites.push({ domain: val, enabled: true });
+        newSiteInput.value = "";
+        renderSiteManagerList();
+      }
+    });
+
+    $("save-sites-btn").addEventListener("click", () => {
+      saveSites();
+      renderFilters();
+      siteModal.classList.remove("active");
+      if (queryInput.value.trim()) search();
+    });
+
+    $("reset-sites-btn").addEventListener("click", () => {
+      if (DEFAULT_CONFIGS[state.category]) {
+        state.sites[state.category] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS[state.category]));
+        renderSiteManagerList();
+      } else {
+        alert("This custom category has no built-in defaults.");
+      }
+    });
+
+    $("export-sites-btn").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state.sites, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `omnisearch-config.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    $("import-sites-trigger").addEventListener("click", () => $("import-file-input").click());
+    $("import-file-input").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (validateConfig(parsed)) {
+            state.sites = parsed;
+            saveSites();
+            renderFilters();
+            renderSiteManagerList();
+            showToast("Configuration imported successfully!");
+          } else {
+            alert("Invalid configuration shape.");
+          }
+        } catch (_) { alert("Failed to parse JSON file."); }
+      };
+      reader.readAsText(file);
+    });
+
+    // Global Settings Handlers
+    $("settings-btn").addEventListener("click", () => {
+      $("setting-provider-mode").value = state.settings.providerMode;
+      $("setting-api-key").value = localStorage.getItem("serper_key") || "";
+      $("setting-anti-slop").checked = state.settings.antiSlop;
+      $("setting-covers").checked = state.settings.showCovers;
+      $("setting-metadata").checked = state.settings.extractMetadata;
+      settingsModal.classList.add("active");
+    });
+    $("close-settings-modal").addEventListener("click", () => settingsModal.classList.remove("active"));
+
+    $("save-settings-btn").addEventListener("click", () => {
+      state.settings.providerMode = $("setting-provider-mode").value;
+      state.settings.antiSlop = $("setting-anti-slop").checked;
+      state.settings.showCovers = $("setting-covers").checked;
+      state.settings.extractMetadata = $("setting-metadata").checked;
+
+      localStorage.setItem("serper_key", $("setting-api-key").value.trim());
+      localStorage.setItem("omni_settings_v3", JSON.stringify(state.settings));
+
+      settingsModal.classList.remove("active");
+      showToast("Settings applied & saved!");
+      if (state.rawResults.length) renderResults();
+    });
+
+    function loadFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      const cat = params.get("cat");
+      const fmt = params.get("fmt");
+      const src = params.get("src");
+      const od  = params.get("od");
+
+      if (cat && state.sites[cat]) state.category = cat;
+      if (fmt) state.format = fmt;
+      if (src) state.source = src;
+      if (od === "1") {
+        state.openDirectoryMode = true;
+        odToggle.classList.add("active");
+      }
+
+      renderFilters();
+
+      if (q) {
+        queryInput.value = q;
+        search();
+      }
+    }
+
+    loadFromUrl();
+  </script>
+</body>
+</html>
