@@ -1087,6 +1087,11 @@
           `intitle:"index of /" ${formatClause} "${q}" -html -htm -php -asp -jsp`,
           `intitle:"index.of" ${formatClause} "${q}" -html -htm -php -asp -jsp`
         ];
+      } else if (state.source !== "all") {
+        // FIX 1: If a specific site is selected, reserve all 10 results exclusively for it
+        const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
+        const slopFilter = (state.settings.antiSlop && current.antiSlop) ? ` ${current.antiSlop}` : "";
+        queryList = [`${q}${formatSuffix} site:${state.source}${slopFilter}`];
       } else {
         const domains = activeSites.map(s => s.domain);
         const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
@@ -1227,10 +1232,33 @@
         }
       }
 
+      // FIX 2: Direct on-site fallback button if Google returns 0 indexed results
       if (!items.length) {
         statusBar.style.display = "flex";
         resultSummary.textContent = "No matches.";
-        resultsEl.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-dim);">No results found matching your filters.</div>`;
+        
+        const fallbackUrl = state.source !== "all" 
+          ? `https://${state.source}/search?q=${encodeURIComponent(state.query)}`
+          : `https://www.google.com/search?q=${encodeURIComponent(buildQueryPayload())}`;
+
+        resultsEl.innerHTML = `
+          <div style="text-align:center; padding:3rem 1rem; color:var(--text-dim);">
+            <p style="font-size:0.95rem; margin-bottom:0.4rem;">
+              ${state.source !== "all" 
+                ? `Google has no indexed pages for <strong>${escapeHtml(state.source)}</strong> matching "${escapeHtml(state.query)}".` 
+                : 'No results found matching your query.'}
+            </p>
+            ${state.source !== "all" ? `
+              <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.25rem;">
+                This repository may protect its database from search crawlers.
+              </p>
+              <a href="${escapeHtml(fallbackUrl)}" target="_blank" rel="noopener noreferrer" 
+                 class="btn btn-primary" style="display:inline-flex; align-items:center; gap:0.4rem; text-decoration:none;">
+                Search Directly on ${escapeHtml(state.source)} ↗
+              </a>
+            ` : ''}
+          </div>
+        `;
         return;
       }
 
@@ -1463,7 +1491,13 @@
       state.source = chip.dataset.source;
       renderFilters();
       syncUrlParams();
-      renderResults();
+      
+      // FIX 1 (cont.): If there's an active query, trigger a dedicated search instead of just filtering
+      if (queryInput.value.trim()) {
+        search();
+      } else {
+        renderResults();
+      }
     });
 
     goBtn.addEventListener("click", () => search());
