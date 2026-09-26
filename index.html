@@ -80,7 +80,6 @@
       background: var(--surface-hover);
     }
 
-    /* Category Bar */
     .category-bar-wrapper {
       display: flex;
       align-items: center;
@@ -130,7 +129,6 @@
     }
     .btn-add-cat:hover { border-color: var(--accent); color: #fff; }
 
-    /* Search Bar with Open Directory Mode */
     .search-wrapper { margin-bottom: 0.85rem; }
 
     .search-bar {
@@ -196,7 +194,6 @@
     }
     .search-btn:hover { background: var(--accent-hover); transform: scale(1.04); }
 
-    /* Filters & Noise Scrubber Panel */
     .filter-panel {
       background: var(--surface);
       border: 1px solid var(--surface-border);
@@ -249,7 +246,6 @@
     }
     .exclude-input:focus { border-color: var(--accent); }
 
-    /* Status Bar & Engine Matrix */
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -272,7 +268,6 @@
     }
     .engine-link:hover { background: rgba(99, 102, 241, 0.15); }
 
-    /* Results */
     .results { display: flex; flex-direction: column; gap: 0.85rem; }
     .result-card {
       background: var(--surface);
@@ -395,7 +390,6 @@
     .load-more-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
     .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* Modals */
     .modal {
       position: fixed;
       inset: 0;
@@ -456,7 +450,6 @@
     }
     .input-field:focus { border-color: var(--accent); }
 
-    /* Site Manager List & Dedicated Toggle Switch */
     .site-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
     .site-item {
       display: flex;
@@ -476,12 +469,6 @@
       text-decoration: line-through;
     }
 
-    /* Switch Component */
-    .switch-wrapper {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
     .switch {
       position: relative;
       display: inline-block;
@@ -577,19 +564,17 @@
           Manage & Rank Sites
         </button>
         <button id="settings-btn" class="icon-btn" title="Global Settings">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83 2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           Settings
         </button>
       </div>
     </header>
 
-    <!-- Dynamic Category Bar -->
     <div class="category-bar-wrapper">
       <div class="category-tabs" id="category-tabs"></div>
       <button class="btn-add-cat" id="add-category-btn">+ New Category</button>
     </div>
 
-    <!-- Search Input & Open Directory Toggle -->
     <div class="search-wrapper">
       <div class="search-bar">
         <input type="text" id="query" placeholder="Search keywords..." autocomplete="off" autofocus />
@@ -604,7 +589,6 @@
       </div>
     </div>
 
-    <!-- Filters Panel with Real-time Noise Scrubber -->
     <div class="filter-panel">
       <div class="filter-row">
         <span class="filter-label">Format</span>
@@ -620,7 +604,6 @@
       </div>
     </div>
 
-    <!-- Status Bar & Multi-Engine Escape Hatch -->
     <div class="status-bar" id="status-bar" style="display: none;">
       <div>
         <span id="result-summary">Ready</span>
@@ -874,6 +857,10 @@
       return { ...DEFAULT_SETTINGS };
     }
 
+    function getApiKey() {
+      return (localStorage.getItem("serper_key") || "").trim().replace(/^["']|["']$/g, "");
+    }
+
     // State
     let state = {
       category: "ebooks",
@@ -968,14 +955,12 @@
       const current = state.sites[state.category];
       if (!current) return;
 
-      // Formats
       formatChips.innerHTML = current.formats.map(fmt => `
         <button class="chip ${state.format === fmt ? 'active' : ''}" data-format="${escapeHtml(fmt)}">
           ${escapeHtml(fmt.toUpperCase())}
         </button>
       `).join("");
 
-      // Source Filter row visibility
       if (state.openDirectoryMode) {
         sourceFilterRow.style.display = "none";
       } else {
@@ -1052,7 +1037,7 @@
       syncUrlParams();
       updateDirectLinks();
 
-      const apiKey = localStorage.getItem("serper_key") || "";
+      const apiKey = getApiKey();
       if (state.settings.providerMode === "direct" || !apiKey) {
         if (!apiKey && state.settings.providerMode === "serper") {
           showToast("No Serper Key set. Opening Direct Search.");
@@ -1123,10 +1108,29 @@
               "X-API-KEY": apiKey,
               "Content-Type": "application/json"
             },
-            body: JSON.stringify({ q: fullQuery, num: 15, page: state.page })
-          }).then(res => {
-            if (!res.ok) throw new Error(`HTTP Error ${res.status}: Check Serper API credentials.`);
-            return res.json();
+            body: JSON.stringify({
+              q: fullQuery,
+              num: 10,
+              page: state.page
+            })
+          }).then(async res => {
+            let data = null;
+            try {
+              data = await res.json();
+            } catch (_) {}
+
+            if (!res.ok) {
+              const errMsg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+              if (res.status === 401 || res.status === 403) {
+                throw new Error(`Authentication Error: Invalid or expired Serper API key. (${errMsg})`);
+              } else if (res.status === 400) {
+                throw new Error(`Bad Request: Serper rejected the search query format. (${errMsg})`);
+              } else {
+                throw new Error(`Serper API Error: ${errMsg}`);
+              }
+            }
+
+            return data;
           });
         });
 
@@ -1135,7 +1139,7 @@
         let incoming = [];
 
         responses.forEach(data => {
-          if (data.error) throw new Error(data.error);
+          if (!data) return;
           (data.organic || []).forEach((item, searchEngineIndex) => {
             if (seenUrls.has(item.link)) return;
             seenUrls.add(item.link);
@@ -1234,7 +1238,7 @@
       resultSummary.textContent = `Showing ${items.length} items (${state.openDirectoryMode ? 'Open Directories' : 'Rank Prioritized'})`;
 
       resultsEl.innerHTML = items.map((item) => {
-        const isDirect = /\.(epub|pdf|mobi|azw3|apk|xapk|mp3|m4b|cbz|cbr)$/i.test(item.link);
+        const isDirect = /\.(epub|pdf|mobi|azw3|apk|xapk|obb|mp3|m4b|m4a|cbz|cbr)$/i.test(item.link);
 
         return `
           <article class="result-card">
@@ -1326,7 +1330,6 @@
       siteListEl.innerHTML = current.sites.map((site, index) => `
         <div class="site-item ${site.enabled ? '' : 'disabled'}" data-index="${index}">
           <div style="display:flex; align-items:center; gap:0.6rem;">
-            <!-- Dedicated Switch -->
             <label class="switch" title="Toggle site ON/OFF">
               <input type="checkbox" class="site-toggle" ${site.enabled ? "checked" : ""} data-index="${index}" />
               <span class="slider"></span>
@@ -1377,7 +1380,6 @@
       if (queryInput.value.trim()) search();
     });
 
-    // Scrub noise filter automatically persists
     excludeFilter.value = state.excludeTerms;
     excludeFilter.addEventListener("input", e => {
       state.excludeTerms = e.target.value;
@@ -1476,7 +1478,6 @@
       }
     });
 
-    // Site Manager Handlers
     $("manage-sites-btn").addEventListener("click", () => {
       renderSiteManagerList();
       siteModal.classList.add("active");
@@ -1501,7 +1502,6 @@
       }
     });
 
-    // Dedicated Switch Toggle Listener
     siteListEl.addEventListener("change", e => {
       if (e.target.classList.contains("site-toggle")) {
         const idx = parseInt(e.target.dataset.index, 10);
@@ -1574,10 +1574,9 @@
       reader.readAsText(file);
     });
 
-    // Global Settings Handlers
     $("settings-btn").addEventListener("click", () => {
       $("setting-provider-mode").value = state.settings.providerMode;
-      $("setting-api-key").value = localStorage.getItem("serper_key") || "";
+      $("setting-api-key").value = getApiKey();
       $("setting-anti-slop").checked = state.settings.antiSlop;
       $("setting-covers").checked = state.settings.showCovers;
       $("setting-metadata").checked = state.settings.extractMetadata;
@@ -1591,7 +1590,8 @@
       state.settings.showCovers = $("setting-covers").checked;
       state.settings.extractMetadata = $("setting-metadata").checked;
 
-      localStorage.setItem("serper_key", $("setting-api-key").value.trim());
+      const rawKey = $("setting-api-key").value.trim().replace(/^["']|["']$/g, "");
+      localStorage.setItem("serper_key", rawKey);
       localStorage.setItem("omni_settings_v3", JSON.stringify(state.settings));
 
       settingsModal.classList.remove("active");
@@ -1627,3 +1627,5 @@
   </script>
 </body>
 </html>
+--- END OF FILE Paste September 26, 2026 - 10:36PM ---
+check now
