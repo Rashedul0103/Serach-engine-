@@ -3,91 +3,122 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#090b11" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="OmniSearch — a precision search front-end for documents and media, built on ranked source lists." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://google.serper.dev" crossorigin />
+  <link rel="preconnect" href="https://openlibrary.org" crossorigin />
   <title>OmniSearch — Precision Document & Media Engine</title>
   <style>
     :root {
+      color-scheme: dark;
       --bg: #090b11;
-      --surface: rgba(18, 22, 35, 0.75);
-      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface: rgba(18, 22, 35, 0.78);
+      --surface-solid: #121623;
+      --surface-border: rgba(255, 255, 255, 0.09);
       --surface-hover: rgba(28, 34, 52, 0.95);
       --accent: #4f46e5;
       --accent-hover: #6366f1;
+      --accent-soft: #a5b4fc;
       --accent-glow: rgba(99, 102, 241, 0.25);
       --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --text-dim: #6b7280;
+      --text-muted: #a0a7b4;
+      --text-dim: #8b93a3;
       --danger: #ef4444;
       --success: #10b981;
       --warning: #f59e0b;
       --radius: 12px;
+      --gutter: 1.25rem;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    html { -webkit-text-size-adjust: 100%; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
-      padding: 2rem 1.25rem 4rem;
-      background-image: 
+      min-height: 100dvh;
+      padding: 1.75rem var(--gutter) 4rem;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1.4;
+    }
+    /* Fixed gradient lives on a pseudo-element: `background-attachment: fixed` janks on iOS/Android */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      background:
         radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.16), transparent 45%),
         radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.06), transparent 30%);
-      background-attachment: fixed;
+    }
+    body.modal-open { overflow: hidden; }
+
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; background: none; border: 0; }
+    button:disabled { cursor: not-allowed; }
+    :focus-visible { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
     }
 
     .container { max-width: 900px; margin: 0 auto; }
 
+    /* ---------- Header ---------- */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1.5rem;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
     }
-
     .brand {
       font-size: 1.25rem;
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 0.6rem;
+      min-width: 0;
     }
-
+    .brand svg { color: var(--accent-soft); flex-shrink: 0; }
     .brand span {
       background: linear-gradient(135deg, #a5b4fc, #6366f1);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
-    .header-actions { display: flex; gap: 0.5rem; }
+    .header-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 
     .icon-btn {
       background: var(--surface);
       border: 1px solid var(--surface-border);
       color: var(--text-muted);
-      border-radius: 8px;
-      padding: 0.5rem 0.75rem;
-      cursor: pointer;
+      border-radius: 10px;
+      padding: 0.5rem 0.8rem;
+      min-height: 40px;
       display: inline-flex;
       align-items: center;
-      gap: 0.4rem;
+      justify-content: center;
+      gap: 0.45rem;
       font-size: 0.8rem;
-      transition: all 0.2s;
-    }
-    .icon-btn:hover {
-      color: var(--text);
-      border-color: rgba(255, 255, 255, 0.2);
-      background: var(--surface-hover);
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
     }
 
+    /* ---------- Category bar ---------- */
     .category-bar-wrapper {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-bottom: 1.25rem;
-      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      min-width: 0;
     }
-
     .category-tabs {
       display: flex;
       gap: 0.35rem;
@@ -95,22 +126,26 @@
       border: 1px solid var(--surface-border);
       padding: 0.3rem;
       border-radius: 100px;
-      flex-wrap: wrap;
+      min-width: 0;
+      position: relative;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
     }
+    .category-tabs::-webkit-scrollbar, .chips::-webkit-scrollbar { display: none; }
 
     .tab-btn {
-      background: transparent;
-      border: none;
       color: var(--text-muted);
-      padding: 0.45rem 1.1rem;
+      padding: 0.5rem 1.05rem;
       border-radius: 100px;
-      cursor: pointer;
-      font-size: 0.82rem;
+      font-size: 0.84rem;
       font-weight: 500;
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      transition: all 0.2s;
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s;
     }
     .tab-btn.active { background: var(--accent); color: #fff; }
 
@@ -118,23 +153,27 @@
       background: rgba(255, 255, 255, 0.04);
       border: 1px dashed var(--surface-border);
       color: var(--text-muted);
-      padding: 0.45rem 0.9rem;
+      padding: 0.5rem 0.9rem;
+      min-height: 40px;
       border-radius: 100px;
-      cursor: pointer;
       font-size: 0.8rem;
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      transition: all 0.2s;
+      flex-shrink: 0;
+      white-space: nowrap;
+      transition: border-color 0.2s, color 0.2s;
     }
-    .btn-add-cat:hover { border-color: var(--accent); color: #fff; }
 
+    /* ---------- Search ---------- */
     .search-wrapper { margin-bottom: 0.85rem; }
 
     .search-bar {
       display: flex;
       align-items: center;
+      gap: 0.25rem;
       background: var(--surface);
+      -webkit-backdrop-filter: blur(12px);
       backdrop-filter: blur(12px);
       border: 1px solid var(--surface-border);
       border-radius: 100px;
@@ -148,31 +187,51 @@
     }
     .search-bar input {
       flex: 1;
+      min-width: 0;
       background: transparent;
       border: none;
       color: var(--text);
       font-size: 1rem;
       outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      padding: 0.45rem 0;
     }
+    .search-bar input::-webkit-search-cancel-button,
+    .search-bar input::-webkit-search-decoration { -webkit-appearance: none; display: none; }
+    .search-bar input::placeholder { color: var(--text-dim); }
 
-    .search-controls { display: flex; align-items: center; gap: 0.4rem; }
+    .clear-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--text-muted);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.85rem;
+    }
+    .clear-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
+    .search-bar.has-text .clear-btn { display: flex; }
+
+    .search-controls { display: flex; align-items: center; gap: 0.4rem; flex-shrink: 0; }
 
     .od-toggle {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--surface-border);
       color: var(--text-muted);
-      padding: 0.35rem 0.65rem;
+      padding: 0.4rem 0.7rem;
+      min-height: 36px;
       border-radius: 100px;
       font-size: 0.72rem;
       font-weight: 600;
-      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 0.35rem;
-      transition: all 0.2s;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
       white-space: nowrap;
     }
-    .od-toggle:hover { border-color: rgba(255, 255, 255, 0.2); color: #fff; }
     .od-toggle.active {
       background: var(--warning);
       border-color: var(--warning);
@@ -180,19 +239,48 @@
     }
 
     .search-btn {
-      width: 42px;
-      height: 42px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      border: none;
       background: var(--accent);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      transition: transform 0.15s;
+      flex-shrink: 0;
+      transition: transform 0.15s, background 0.2s;
     }
-    .search-btn:hover { background: var(--accent-hover); transform: scale(1.04); }
+    .search-btn:active { transform: scale(0.96); }
+
+    /* ---------- Filters ---------- */
+    .filter-toggle-row { display: none; margin-bottom: 0.75rem; }
+    .filter-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      border-radius: 100px;
+      padding: 0.5rem 0.95rem;
+      min-height: 40px;
+      font-size: 0.82rem;
+    }
+    .filter-toggle .count {
+      background: var(--accent);
+      color: #fff;
+      border-radius: 100px;
+      min-width: 1.35rem;
+      height: 1.35rem;
+      padding: 0 0.35rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-toggle .chev { transition: transform 0.2s; }
+    .filter-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
 
     .filter-panel {
       background: var(--surface);
@@ -204,48 +292,57 @@
       flex-direction: column;
       gap: 0.75rem;
     }
-
     .filter-row {
       display: flex;
       align-items: flex-start;
       gap: 0.75rem;
       font-size: 0.8rem;
+      min-width: 0;
     }
     .filter-label {
       min-width: 60px;
-      padding-top: 0.25rem;
+      padding-top: 0.35rem;
       text-transform: uppercase;
       font-weight: 700;
+      font-size: 0.72rem;
       letter-spacing: 0.05em;
       color: var(--text-dim);
     }
-    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      min-width: 0;
+      flex: 1;
+      position: relative;
+    }
+    #source-chips { max-height: 6.75rem; overflow-y: auto; scrollbar-width: thin; }
     .chip {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--surface-border);
       color: var(--text-muted);
       border-radius: 20px;
-      padding: 0.2rem 0.65rem;
-      font-size: 0.75rem;
-      cursor: pointer;
-      transition: all 0.15s;
+      padding: 0.28rem 0.75rem;
+      min-height: 30px;
+      font-size: 0.76rem;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
     }
-    .chip:hover { border-color: rgba(255, 255, 255, 0.2); color: var(--text); }
     .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
 
     .exclude-input {
       background: rgba(0, 0, 0, 0.25);
       border: 1px solid var(--surface-border);
-      border-radius: 6px;
-      padding: 0.25rem 0.55rem;
+      border-radius: 8px;
+      padding: 0.4rem 0.65rem;
       color: var(--text);
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       width: 100%;
-      max-width: 340px;
+      max-width: 380px;
       outline: none;
     }
     .exclude-input:focus { border-color: var(--accent); }
 
+    /* ---------- Status bar ---------- */
     .status-bar {
       display: flex;
       justify-content: space-between;
@@ -254,20 +351,40 @@
       font-size: 0.82rem;
       color: var(--text-muted);
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.6rem 1rem;
     }
-    .direct-search-engines { display: flex; gap: 0.35rem; align-items: center; }
+    .status-right { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+    .direct-search-engines { display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap; }
+    #timing-badge { margin-left: 0.5rem; color: var(--text-dim); }
     .engine-link {
-      color: #a5b4fc;
+      color: var(--accent-soft);
       text-decoration: none;
-      font-size: 0.73rem;
+      font-size: 0.75rem;
       border: 1px solid rgba(99, 102, 241, 0.3);
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
+      padding: 0.25rem 0.55rem;
+      border-radius: 6px;
       transition: background 0.15s;
     }
     .engine-link:hover { background: rgba(99, 102, 241, 0.15); }
 
+    .seg {
+      display: inline-flex;
+      background: rgba(14, 17, 27, 0.6);
+      border: 1px solid var(--surface-border);
+      border-radius: 100px;
+      padding: 2px;
+    }
+    .seg-btn {
+      padding: 0.25rem 0.75rem;
+      min-height: 28px;
+      border-radius: 100px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+    }
+    .seg-btn.active { background: var(--accent); color: #fff; }
+
+    /* ---------- Results ---------- */
     .results { display: flex; flex-direction: column; gap: 0.85rem; }
     .result-card {
       background: var(--surface);
@@ -277,11 +394,7 @@
       display: flex;
       gap: 1.15rem;
       transition: transform 0.15s, border-color 0.2s, background 0.2s;
-    }
-    .result-card:hover {
-      border-color: rgba(255, 255, 255, 0.18);
-      background: var(--surface-hover);
-      transform: translateY(-2px);
+      animation: fadeUp 0.25s ease-out both;
     }
     .book-cover {
       width: 58px;
@@ -300,52 +413,52 @@
       gap: 0.75rem;
       margin-bottom: 0.4rem;
     }
-    .result-title { font-size: 1rem; line-height: 1.35; }
-    .result-title a { color: #cbd5e1; text-decoration: none; font-weight: 600; }
-    .result-title a:hover { color: #a5b4fc; text-decoration: underline; }
+    .result-title { font-size: 1rem; line-height: 1.35; font-weight: 600; overflow-wrap: anywhere; }
+    .result-title a { color: #cbd5e1; text-decoration: none; }
+    .result-title a:hover { color: var(--accent-soft); text-decoration: underline; }
+    .result-title a:visited { color: #94a3b8; }
 
     .header-badges { display: flex; gap: 0.35rem; align-items: center; }
-    .badge-direct {
-      background: #059669;
-      color: #fff;
+    .badge-direct, .badge-od {
       font-size: 0.65rem;
       font-weight: 700;
       padding: 0.15rem 0.45rem;
       border-radius: 4px;
       flex-shrink: 0;
+      white-space: nowrap;
     }
-    .badge-od {
-      background: var(--warning);
-      color: #000;
-      font-size: 0.65rem;
-      font-weight: 700;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      flex-shrink: 0;
-    }
+    .badge-direct { background: #059669; color: #fff; }
+    .badge-od { background: var(--warning); color: #000; }
 
     .result-snippet {
       color: var(--text-muted);
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       line-height: 1.5;
       margin-bottom: 0.65rem;
+      overflow-wrap: anywhere;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .result-meta {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.6rem;
       font-size: 0.75rem;
       color: var(--text-dim);
     }
-    .meta-left { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; }
+    .meta-left { display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap; min-width: 0; }
     .source-tag {
       background: rgba(99, 102, 241, 0.15);
-      color: #a5b4fc;
+      color: var(--accent-soft);
       border: 1px solid rgba(99, 102, 241, 0.25);
       border-radius: 4px;
       padding: 0.15rem 0.45rem;
       font-weight: 500;
+      overflow-wrap: anywhere;
     }
     .rank-tag {
       background: rgba(255, 255, 255, 0.05);
@@ -361,39 +474,102 @@
       color: var(--text-muted);
     }
 
-    .meta-actions { display: flex; gap: 0.35rem; }
+    .meta-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
     .meta-btn {
-      background: transparent;
       border: 1px solid var(--surface-border);
       color: var(--text-muted);
-      border-radius: 4px;
-      padding: 0.2rem 0.45rem;
-      cursor: pointer;
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      min-height: 32px;
       text-decoration: none;
       font-size: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      white-space: nowrap;
     }
     .meta-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text); }
 
     .load-more-btn {
       width: 100%;
-      padding: 0.75rem;
+      padding: 0.85rem;
       background: var(--surface);
       border: 1px solid var(--surface-border);
       color: var(--text);
       border-radius: var(--radius);
-      font-size: 0.88rem;
+      font-size: 0.9rem;
       font-weight: 500;
-      cursor: pointer;
       margin-top: 1rem;
-      transition: all 0.2s;
+      transition: background 0.2s, border-color 0.2s;
     }
     .load-more-btn:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
-    .load-more-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .load-more-btn:disabled { opacity: 0.5; }
 
+    .skeleton-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .skeleton-line {
+      height: 13px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.3s infinite linear;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem 1.5rem;
+      color: var(--text-dim);
+    }
+    .empty-state .big { font-size: 2.2rem; margin-bottom: 0.6rem; }
+    .empty-state h2 { font-size: 1.05rem; color: var(--text); font-weight: 600; margin-bottom: 0.35rem; }
+    .empty-state p { font-size: 0.85rem; color: var(--text-muted); max-width: 46ch; margin: 0 auto 0.9rem; }
+    .empty-state .recent-label {
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em;
+      font-weight: 700; margin: 1.1rem 0 0.5rem;
+    }
+    .empty-state .chips { justify-content: center; flex: none; }
+    .empty-state .hint { font-size: 0.76rem; color: var(--text-dim); margin-top: 1.1rem; }
+    kbd {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--surface-border);
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 0 0.35rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.72rem;
+    }
+    .link-btn {
+      color: var(--accent-soft);
+      font-size: 0.76rem;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      padding: 0.25rem;
+    }
+
+    .alert {
+      border-radius: 8px;
+      margin-top: 1rem;
+      padding: 0.85rem 1.15rem;
+      font-size: 0.85rem;
+      overflow-wrap: anywhere;
+    }
+    .alert.error { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5; }
+    .alert.warn { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); color: #fcd34d; }
+
+    /* ---------- Modals ---------- */
     .modal {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.78);
+      -webkit-backdrop-filter: blur(6px);
       backdrop-filter: blur(6px);
       display: none;
       align-items: center;
@@ -409,18 +585,24 @@
       width: 100%;
       max-width: 580px;
       max-height: 85vh;
+      max-height: 85dvh;
       display: flex;
       flex-direction: column;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      animation: pop 0.18s ease-out;
+      outline: none;
     }
+    .modal-box.sm { max-width: 480px; }
     .modal-header {
-      padding: 1.15rem 1.4rem;
+      padding: 1.1rem 1.4rem;
       border-bottom: 1px solid var(--surface-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 0.75rem;
     }
-    .modal-body { padding: 1.25rem 1.4rem; overflow-y: auto; flex: 1; }
+    .modal-header h2 { font-size: 1.1rem; overflow-wrap: anywhere; }
+    .modal-body { padding: 1.25rem 1.4rem; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
     .modal-footer {
       padding: 1rem 1.4rem;
       border-top: 1px solid var(--surface-border);
@@ -443,153 +625,304 @@
       background: #090a10;
       border: 1px solid var(--surface-border);
       border-radius: 8px;
-      padding: 0.55rem 0.85rem;
+      padding: 0.6rem 0.85rem;
       color: var(--text);
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       outline: none;
     }
     .input-field:focus { border-color: var(--accent); }
+    .input-row { display: flex; gap: 0.5rem; }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+    .setting-title { font-size: 0.88rem; font-weight: 600; }
+    .setting-desc { font-size: 0.74rem; color: var(--text-dim); margin-top: 0.1rem; }
 
     .site-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
     .site-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.5rem;
       background: rgba(255, 255, 255, 0.02);
       border: 1px solid var(--surface-border);
       padding: 0.5rem 0.75rem;
       border-radius: 8px;
       transition: opacity 0.2s;
     }
-    .site-item.disabled {
-      opacity: 0.45;
-      background: rgba(0, 0, 0, 0.2);
+    .site-item.disabled { opacity: 0.5; background: rgba(0, 0, 0, 0.2); }
+    .site-item.disabled .site-domain-text { text-decoration: line-through; }
+    .site-main { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex: 1; }
+    .site-domain-text { font-size: 0.83rem; min-width: 0; overflow-wrap: anywhere; }
+    .muted-tag {
+      font-size: 0.65rem; color: var(--text-dim);
+      border: 1px solid var(--surface-border); border-radius: 4px; padding: 1px 4px;
     }
-    .site-item.disabled .site-domain-text {
-      text-decoration: line-through;
-    }
+    .site-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
 
     .switch {
       position: relative;
       display: inline-block;
-      width: 32px;
-      height: 18px;
+      width: 36px;
+      height: 20px;
       flex-shrink: 0;
     }
-    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch input { opacity: 0; width: 100%; height: 100%; position: absolute; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
     .slider {
       position: absolute;
-      cursor: pointer;
       inset: 0;
-      background-color: rgba(255, 255, 255, 0.15);
-      transition: .2s;
-      border-radius: 18px;
+      background-color: rgba(255, 255, 255, 0.18);
+      transition: 0.2s;
+      border-radius: 20px;
     }
-    .slider:before {
+    .slider::before {
       position: absolute;
       content: "";
-      height: 12px;
-      width: 12px;
+      height: 14px;
+      width: 14px;
       left: 3px;
       bottom: 3px;
-      background-color: white;
-      transition: .2s;
+      background-color: #fff;
+      transition: 0.2s;
       border-radius: 50%;
     }
-    input:checked + .slider { background-color: var(--accent); }
-    input:checked + .slider:before { transform: translateX(14px); }
+    .switch input:checked + .slider { background-color: var(--accent); }
+    .switch input:checked + .slider::before { transform: translateX(16px); }
+    .switch input:focus-visible + .slider { outline: 2px solid var(--accent-soft); outline-offset: 2px; }
 
     .site-action-btn {
-      background: transparent;
       border: 1px solid var(--surface-border);
       color: var(--text-muted);
-      border-radius: 4px;
-      width: 28px;
-      height: 28px;
+      border-radius: 6px;
+      width: 32px;
+      height: 32px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      font-size: 0.8rem;
     }
-    .site-action-btn:hover { background: var(--surface-hover); color: var(--text); }
+    .site-action-btn:hover:not(:disabled) { background: var(--surface-hover); color: var(--text); }
+    .site-action-btn:disabled { opacity: 0.3; }
     .site-action-btn.delete:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 
     .btn {
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.05rem;
+      min-height: 40px;
       border-radius: 8px;
-      font-size: 0.82rem;
-      cursor: pointer;
+      font-size: 0.84rem;
       font-weight: 500;
       border: none;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
     }
+    .btn-sm { min-height: 34px; padding: 0.35rem 0.7rem; font-size: 0.76rem; }
     .btn-secondary { background: transparent; color: var(--text-muted); border: 1px solid var(--surface-border); }
+    .btn-secondary:hover { color: var(--text); background: rgba(255, 255, 255, 0.05); }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { background: var(--accent-hover); }
-    .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
     .btn-danger:hover { background: var(--danger); color: #fff; }
 
     #toast {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
+      left: 50%;
+      bottom: 1.75rem;
+      max-width: calc(100vw - 2rem);
       background: #1e2438;
       border: 1px solid var(--accent);
       color: #fff;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-size: 0.84rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
       opacity: 0;
       pointer-events: none;
       transition: opacity 0.25s, transform 0.25s;
-      transform: translateY(10px);
+      transform: translate(-50%, 10px);
       z-index: 2000;
     }
-    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #toast.error { border-color: var(--danger); }
+
+    /* ---------- Motion ---------- */
+    @keyframes shimmer { to { background-position: -200% 0; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes pop { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+    @keyframes sheet { from { transform: translateY(100%); } to { transform: none; } }
+
+    @media (hover: hover) {
+      .icon-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.2); background: var(--surface-hover); }
+      .btn-add-cat:hover { border-color: var(--accent); color: #fff; }
+      .od-toggle:hover { border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+      .od-toggle.active:hover { color: #000; }
+      .search-btn:hover { background: var(--accent-hover); transform: scale(1.04); }
+      .chip:hover { border-color: rgba(255, 255, 255, 0.2); color: var(--text); }
+      .chip.active:hover { color: #fff; }
+      .result-card:hover {
+        border-color: rgba(255, 255, 255, 0.18);
+        background: var(--surface-hover);
+        transform: translateY(-2px);
+      }
+    }
+
+    /* ---------- Touch devices ---------- */
+    @media (pointer: coarse) {
+      .chip { min-height: 38px; padding: 0.4rem 0.9rem; }
+      .meta-btn { min-height: 40px; padding: 0.4rem 0.8rem; }
+      .site-action-btn { width: 36px; height: 36px; }
+      .site-actions { gap: 0.2rem; }
+      .seg-btn { min-height: 34px; }
+      .switch { width: 42px; height: 24px; }
+      .slider::before { height: 18px; width: 18px; }
+      .switch input:checked + .slider::before { transform: translateX(18px); }
+      .kbd-hint { display: none; }
+    }
+
+    /* ---------- Tablet & phone ---------- */
+    @media (max-width: 640px) {
+      :root { --gutter: 1rem; }
+      body { padding-top: 1rem; }
+      .brand { font-size: 1.1rem; }
+      .icon-btn .btn-label, .btn-add-cat .btn-label, .od-toggle .od-label { display: none; }
+      .icon-btn { width: 42px; padding: 0; }
+      .btn-add-cat { width: 42px; padding: 0; justify-content: center; font-size: 1.1rem; }
+      .od-toggle { padding: 0 0.6rem; min-width: 36px; justify-content: center; }
+
+      /* Sticky search keeps the main action under the thumb while scrolling results */
+      .search-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 60;
+        margin: 0 calc(var(--gutter) * -1) 0.6rem;
+        padding: 0.5rem var(--gutter);
+        background: linear-gradient(to bottom, var(--bg) 78%, rgba(9, 11, 17, 0));
+      }
+      .search-bar { padding-left: 1rem; }
+
+      .filter-toggle-row { display: block; }
+      .filter-panel { display: none; margin-bottom: 1rem; padding: 0.85rem; }
+      .filter-panel.open { display: flex; }
+      .filter-row { flex-direction: column; gap: 0.35rem; }
+      .filter-label { padding-top: 0; min-width: 0; }
+      .chips { flex: none; width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+      #source-chips { max-height: none; overflow-y: hidden; }
+      .chip { flex-shrink: 0; white-space: nowrap; }
+      .empty-state .chips { flex-wrap: wrap; overflow: visible; }
+      .exclude-input { max-width: none; font-size: 16px; }
+
+      .status-bar { align-items: flex-start; flex-direction: column; gap: 0.5rem; }
+      /* One compact, swipeable row instead of three stacked ones — gets results above the fold */
+      .status-right { width: 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+      .status-right::-webkit-scrollbar { display: none; }
+      .seg, .direct-search-engines { flex-shrink: 0; }
+      .direct-search-engines { flex-wrap: nowrap; }
+      .direct-search-engines > span { display: none; }
+      .engine-link { white-space: nowrap; }
+
+      .result-card { padding: 0.9rem; gap: 0.75rem; }
+      .book-cover { width: 48px; height: 68px; }
+      .result-title { font-size: 0.97rem; }
+      .result-meta { flex-direction: column; align-items: stretch; gap: 0.65rem; }
+      .meta-actions { width: 100%; }
+      .meta-btn { flex: 1; }
+
+      /* Modals become bottom sheets */
+      .modal { align-items: flex-end; padding: 0; }
+      .modal-box, .modal-box.sm {
+        max-width: none;
+        border-radius: 18px 18px 0 0;
+        border-bottom: 0;
+        max-height: 92vh;
+        max-height: 92dvh;
+        animation: sheet 0.22s ease-out;
+      }
+      .modal-header, .modal-body { padding-left: 1.1rem; padding-right: 1.1rem; }
+      .modal-footer { padding: 0.9rem 1.1rem calc(0.9rem + env(safe-area-inset-bottom, 0px)); }
+      .input-field { font-size: 16px; } /* prevents iOS zoom-on-focus */
+      .search-bar input { font-size: 16px; }
+
+      #toast { bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); }
+    }
+
+    @media (max-width: 380px) {
+      .tab-btn { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+      .brand { font-size: 1rem; }
+    }
+
+    @media (min-width: 641px) and (max-width: 860px) {
+      .result-meta { flex-wrap: wrap; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
+  <noscript><p style="padding:1rem;text-align:center;">OmniSearch needs JavaScript to run.</p></noscript>
+
   <div class="container">
     <header>
       <div class="brand">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
         <span>OmniSearch</span>
       </div>
       <div class="header-actions">
-        <button id="manage-sites-btn" class="icon-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Manage & Rank Sites
+        <button id="manage-sites-btn" class="icon-btn" type="button" aria-label="Manage and rank sites" title="Manage &amp; Rank Sites">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <span class="btn-label">Manage &amp; Rank Sites</span>
         </button>
-        <button id="settings-btn" class="icon-btn" title="Global Settings">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83 2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          Settings
+        <button id="settings-btn" class="icon-btn" type="button" aria-label="Settings" title="Global Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83 2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="btn-label">Settings</span>
         </button>
       </div>
     </header>
 
     <div class="category-bar-wrapper">
-      <div class="category-tabs" id="category-tabs"></div>
-      <button class="btn-add-cat" id="add-category-btn">+ New Category</button>
+      <div class="category-tabs" id="category-tabs" role="group" aria-label="Categories"></div>
+      <button class="btn-add-cat" id="add-category-btn" type="button" aria-label="New category" title="New category">
+        <span aria-hidden="true">+</span><span class="btn-label">New Category</span>
+      </button>
     </div>
 
     <div class="search-wrapper">
-      <div class="search-bar">
-        <input type="text" id="query" placeholder="Search keywords..." autocomplete="off" autofocus />
+      <form class="search-bar" id="search-form" role="search" autocomplete="off">
+        <input type="search" id="query" name="q" placeholder="Search keywords…" aria-label="Search keywords"
+               autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search" />
+        <button type="button" id="clear-btn" class="clear-btn" aria-label="Clear search">✕</button>
         <div class="search-controls">
-          <button id="od-toggle" class="od-toggle" title="Search raw web server index directories (zero ads)">
-            📂 Open Directories
+          <button type="button" id="od-toggle" class="od-toggle" aria-pressed="false" aria-label="Open Directories"
+                  title="Search raw web server index directories (zero ads)">
+            <span aria-hidden="true">📂</span><span class="od-label">Open Directories</span>
           </button>
-          <button id="go" class="search-btn" aria-label="Search">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <button type="submit" id="go" class="search-btn" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           </button>
         </div>
-      </div>
+      </form>
     </div>
 
-    <div class="filter-panel">
+    <div class="filter-toggle-row">
+      <button type="button" id="filter-toggle" class="filter-toggle" aria-expanded="false" aria-controls="filter-panel">
+        <span>Filters</span>
+        <span class="count" id="filter-count" hidden>0</span>
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+
+    <div class="filter-panel" id="filter-panel">
       <div class="filter-row">
         <span class="filter-label">Format</span>
         <div class="chips" id="format-chips"></div>
@@ -599,150 +932,165 @@
         <div class="chips" id="source-chips"></div>
       </div>
       <div class="filter-row">
-        <span class="filter-label">Scrub</span>
-        <input type="text" id="exclude-filter" class="exclude-input" placeholder="Exclude terms: summary, review, sparknotes..." />
+        <label class="filter-label" for="exclude-filter">Scrub</label>
+        <input type="text" id="exclude-filter" class="exclude-input" placeholder="Exclude terms: summary, review, sparknotes..."
+               autocomplete="off" autocapitalize="off" spellcheck="false" />
       </div>
     </div>
 
-    <div class="status-bar" id="status-bar" style="display: none;">
+    <div class="status-bar" id="status-bar" hidden>
       <div>
-        <span id="result-summary">Ready</span>
-        <span id="timing-badge" style="margin-left:0.5rem; color:var(--text-dim);"></span>
+        <span id="result-summary" role="status" aria-live="polite">Ready</span>
+        <span id="timing-badge"></span>
       </div>
-      <div class="direct-search-engines">
-        <span>Bypass Matrix:</span>
-        <a href="#" id="open-google" class="engine-link" target="_blank" rel="noopener">Google</a>
-        <a href="#" id="open-ddg" class="engine-link" target="_blank" rel="noopener">DuckDuckGo</a>
-        <a href="#" id="open-yandex" class="engine-link" target="_blank" rel="noopener">Yandex</a>
+      <div class="status-right">
+        <div class="seg" id="sort-seg" role="group" aria-label="Sort results">
+          <button type="button" class="seg-btn active" data-sort="rank" aria-pressed="true" title="Your site ranking first, then search relevance">Rank</button>
+          <button type="button" class="seg-btn" data-sort="relevance" aria-pressed="false" title="Original search-engine order">Relevance</button>
+        </div>
+        <div class="direct-search-engines">
+          <span>Bypass Matrix:</span>
+          <a href="#" id="open-google" class="engine-link" target="_blank" rel="noopener noreferrer">Google</a>
+          <a href="#" id="open-ddg" class="engine-link" target="_blank" rel="noopener noreferrer">DuckDuckGo</a>
+          <a href="#" id="open-yandex" class="engine-link" target="_blank" rel="noopener noreferrer">Yandex</a>
+        </div>
       </div>
     </div>
 
     <div class="results" id="results"></div>
-    <button id="load-more-btn" class="load-more-btn" style="display:none;">Load More Results</button>
+    <button id="load-more-btn" class="load-more-btn" type="button" style="display:none;">Load More Results</button>
     <div id="alert-container"></div>
   </div>
 
   <!-- Create Category Modal -->
   <div class="modal" id="category-modal">
-    <div class="modal-box" style="max-width: 480px;">
+    <div class="modal-box sm" role="dialog" aria-modal="true" aria-labelledby="cat-modal-title" tabindex="-1">
       <div class="modal-header">
-        <h2 style="font-size: 1.15rem;">Create New Category</h2>
-        <button id="close-cat-modal" class="site-action-btn">✕</button>
+        <h2 id="cat-modal-title">Create New Category</h2>
+        <button id="close-cat-modal" class="site-action-btn" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Category Label (e.g. Comics & Manga)</label>
-          <input type="text" id="cat-label-input" class="input-field" placeholder="Comics & Manga" />
+          <label for="cat-label-input">Category Label (e.g. Comics & Manga)</label>
+          <input type="text" id="cat-label-input" class="input-field" placeholder="Comics & Manga" maxlength="40" />
         </div>
         <div class="form-group">
-          <label>Icon / Emoji</label>
-          <input type="text" id="cat-icon-input" class="input-field" placeholder="💬" style="width: 80px;" />
+          <label for="cat-icon-input">Icon / Emoji</label>
+          <input type="text" id="cat-icon-input" class="input-field" placeholder="💬" style="width: 80px;" maxlength="4" />
         </div>
         <div class="form-group">
-          <label>File Formats (Comma-separated)</label>
-          <input type="text" id="cat-formats-input" class="input-field" placeholder="cbz, cbr, pdf" />
+          <label for="cat-formats-input">File Formats (Comma-separated)</label>
+          <input type="text" id="cat-formats-input" class="input-field" placeholder="cbz, cbr, pdf" autocapitalize="off" />
         </div>
         <div class="form-group">
-          <label>Initial Domains (Comma-separated)</label>
-          <input type="text" id="cat-domains-input" class="input-field" placeholder="archive.org, getcomics.org" />
+          <label for="cat-domains-input">Initial Domains (Comma-separated)</label>
+          <input type="text" id="cat-domains-input" class="input-field" placeholder="archive.org, getcomics.org" autocapitalize="off" />
         </div>
       </div>
       <div class="modal-footer">
-        <button id="cancel-cat-btn" class="btn btn-secondary">Cancel</button>
-        <button id="save-cat-btn" class="btn btn-primary">Create Category</button>
+        <button id="cancel-cat-btn" class="btn btn-secondary" type="button">Cancel</button>
+        <button id="save-cat-btn" class="btn btn-primary" type="button">Create Category</button>
       </div>
     </div>
   </div>
 
   <!-- Site Manager Modal -->
   <div class="modal" id="site-modal">
-    <div class="modal-box">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="site-modal-title" tabindex="-1">
       <div class="modal-header">
-        <h2 style="font-size: 1.15rem;">Manage Sites: <span id="modal-cat-title" style="color:#a5b4fc;"></span></h2>
-        <button id="close-site-modal" class="site-action-btn">✕</button>
+        <h2 id="site-modal-title">Manage Sites: <span id="modal-cat-title" style="color:var(--accent-soft);"></span></h2>
+        <button id="close-site-modal" class="site-action-btn" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.85rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom: 0.85rem;">
           <p style="font-size: 0.8rem; color: var(--text-muted);">
-            Use switch to <strong>toggle ON/OFF</strong>. Rank with arrows.
+            Use the switch to <strong>toggle ON/OFF</strong>. Rank with the arrows — the top site wins.
           </p>
-          <button id="delete-cat-btn" class="btn btn-danger" style="font-size:0.75rem; padding:0.3rem 0.6rem; display:none;">Delete Category</button>
+          <button id="delete-cat-btn" class="btn btn-danger btn-sm" type="button" style="display:none; flex-shrink:0;">Delete Category</button>
         </div>
         <div class="site-list" id="site-list"></div>
-        <div style="display:flex; gap:0.5rem; margin-bottom:1.25rem;">
-          <input type="text" id="new-site-input" class="input-field" placeholder="Add domain (e.g. arxiv.org)" />
-          <button id="add-site-btn" class="btn btn-primary" style="flex-shrink:0;">Add Site</button>
+        <div class="input-row" style="margin-bottom:1.25rem;">
+          <input type="text" id="new-site-input" class="input-field" placeholder="Add domain (e.g. arxiv.org)"
+                 aria-label="Add domain" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="url" />
+          <button id="add-site-btn" class="btn btn-primary" type="button" style="flex-shrink:0;">Add Site</button>
         </div>
-        <div style="border-top:1px solid var(--surface-border); padding-top:1rem; display:flex; justify-content:space-between; align-items:center;">
+        <div style="border-top:1px solid var(--surface-border); padding-top:1rem; display:flex; justify-content:space-between; align-items:center; gap:0.5rem; flex-wrap:wrap;">
           <span style="font-size:0.8rem; color:var(--text-dim);">Config Backup</span>
           <div style="display:flex; gap:0.4rem;">
-            <button id="export-sites-btn" class="btn btn-secondary" style="font-size:0.75rem;">Export JSON</button>
-            <button id="import-sites-trigger" class="btn btn-secondary" style="font-size:0.75rem;">Import JSON</button>
-            <input type="file" id="import-file-input" style="display:none;" accept=".json" />
+            <button id="export-sites-btn" class="btn btn-secondary btn-sm" type="button">Export JSON</button>
+            <button id="import-sites-trigger" class="btn btn-secondary btn-sm" type="button">Import JSON</button>
+            <input type="file" id="import-file-input" style="display:none;" accept=".json,application/json" />
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button id="reset-sites-btn" class="btn btn-secondary">Reset Category</button>
-        <button id="save-sites-btn" class="btn btn-primary">Apply Changes</button>
+        <button id="reset-sites-btn" class="btn btn-secondary" type="button">Reset Category</button>
+        <button id="save-sites-btn" class="btn btn-primary" type="button">Apply Changes</button>
       </div>
     </div>
   </div>
 
   <!-- Settings Modal -->
   <div class="modal" id="settings-modal">
-    <div class="modal-box">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title" tabindex="-1">
       <div class="modal-header">
-        <h2 style="font-size: 1.15rem;">Engine Preferences & Settings</h2>
-        <button id="close-settings-modal" class="site-action-btn">✕</button>
+        <h2 id="settings-modal-title">Engine Preferences & Settings</h2>
+        <button id="close-settings-modal" class="site-action-btn" type="button" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
         <div class="form-group">
-          <label>Provider Mode</label>
+          <label for="setting-provider-mode">Provider Mode</label>
           <select id="setting-provider-mode" class="input-field">
             <option value="serper">Serper API (Aggregated in-app results)</option>
             <option value="direct">Direct Engine (Opens Google / DDG Dork queries)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Serper API Key</label>
-          <input type="password" id="setting-api-key" class="input-field" placeholder="Enter key..." />
+          <label for="setting-api-key">Serper API Key</label>
+          <div class="input-row">
+            <input type="password" id="setting-api-key" class="input-field" placeholder="Enter key..." autocomplete="off" autocapitalize="off" spellcheck="false" />
+            <button id="toggle-key-btn" class="btn btn-secondary btn-sm" type="button" aria-pressed="false" style="flex-shrink:0;">Show</button>
+          </div>
+          <div class="setting-desc" style="margin-top:0.35rem;">Stored only in this browser (localStorage) and sent only to google.serper.dev.</div>
         </div>
         <div style="border-top:1px solid var(--surface-border); margin: 1rem 0;"></div>
-        
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
-          <div>
-            <div style="font-size:0.85rem; font-weight:600;">Anti-Slop Commercial Shield</div>
-            <div style="font-size:0.72rem; color:var(--text-dim);">Strips Amazon, Goodreads, paywalls & affiliate stores</div>
-          </div>
-          <input type="checkbox" id="setting-anti-slop" />
+
+        <div class="setting-row">
+          <label for="setting-anti-slop">
+            <div class="setting-title">Anti-Slop Commercial Shield</div>
+            <div class="setting-desc">Strips Amazon, Goodreads, paywalls & affiliate stores</div>
+          </label>
+          <span class="switch"><input type="checkbox" id="setting-anti-slop" /><span class="slider"></span></span>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
-          <div>
-            <div style="font-size:0.85rem; font-weight:600;">Extract Snippet Metadata</div>
-            <div style="font-size:0.72rem; color:var(--text-dim);">Detect file size (MB/KB) and publication year from results</div>
-          </div>
-          <input type="checkbox" id="setting-metadata" />
+        <div class="setting-row">
+          <label for="setting-metadata">
+            <div class="setting-title">Extract Snippet Metadata</div>
+            <div class="setting-desc">Detect file size (MB/KB) and publication year from results</div>
+          </label>
+          <span class="switch"><input type="checkbox" id="setting-metadata" /><span class="slider"></span></span>
         </div>
 
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-size:0.85rem; font-weight:600;">Fetch Book Covers (OpenLibrary)</div>
-            <div style="font-size:0.72rem; color:var(--text-dim);">Lazy-loads book thumbnails for eBooks category</div>
-          </div>
-          <input type="checkbox" id="setting-covers" />
+        <div class="setting-row" style="margin-bottom:0;">
+          <label for="setting-covers">
+            <div class="setting-title">Fetch Book Covers (OpenLibrary)</div>
+            <div class="setting-desc">Lazy-loads book thumbnails for eBooks category</div>
+          </label>
+          <span class="switch"><input type="checkbox" id="setting-covers" /><span class="slider"></span></span>
         </div>
       </div>
       <div class="modal-footer">
-        <button id="save-settings-btn" class="btn btn-primary" style="margin-left:auto;">Save Settings</button>
+        <button id="save-settings-btn" class="btn btn-primary" type="button" style="margin-left:auto;">Save Settings</button>
       </div>
     </div>
   </div>
 
-  <div id="toast">Copied to clipboard</div>
+  <div id="toast" role="status" aria-live="polite">Copied to clipboard</div>
 
   <script>
+  (() => {
+    "use strict";
+
     // ============================================================
     // CONFIGURATION & DEFAULTS
     // ============================================================
@@ -842,577 +1190,961 @@
       providerMode: "serper",
       antiSlop: true,
       showCovers: true,
-      extractMetadata: true
+      extractMetadata: true,
+      sortMode: "rank"
     };
 
     const MAX_PAGE = 5;
+    const CHUNK_SIZE = 6;               // Google caps queries at ~32 terms, so sites are queried in chunks
+    const REQUEST_TIMEOUT_MS = 20000;
+    const HISTORY_KEY = "omni_history_v1";
+    const HISTORY_MAX = 8;
 
-    function loadSettings() {
-      const stored = localStorage.getItem("omni_settings_v3");
+    // ============================================================
+    // UTILITIES
+    // ============================================================
+    const $ = id => document.getElementById(id);
+    const clone = o => JSON.parse(JSON.stringify(o));
+
+    // localStorage can throw (private mode, blocked cookies, sandboxed iframes)
+    const store = {
+      get(k) { try { return localStorage.getItem(k); } catch (_) { return null; } },
+      set(k, v) { try { localStorage.setItem(k, v); return true; } catch (_) { return false; } }
+    };
+
+    function escapeHtml(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, m => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[m]));
+    }
+
+    function safeUrl(u) {
+      try {
+        const x = new URL(u);
+        return (x.protocol === "http:" || x.protocol === "https:") ? x.href : "#";
+      } catch (_) { return "#"; }
+    }
+
+    function cleanDomain(v) {
+      const d = String(v || "").trim().toLowerCase()
+        .replace(/^site:/, "")
+        .replace(/^[a-z][a-z0-9+.-]*:\/\//, "")
+        .replace(/^www\./, "")
+        .replace(/[/?#].*$/, "")
+        .replace(/:\d+$/, "");
+      return /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9-]{2,}$/.test(d) ? d : "";
+    }
+
+    function hostMatches(host, domain) {
+      const h = (host || "").toLowerCase();
+      const d = (domain || "").toLowerCase();
+      return !!d && (h === d || h.endsWith("." + d));
+    }
+
+    // Used to de-duplicate results that differ only by tracking params / trailing slash
+    function normalizeUrl(u) {
+      try {
+        const x = new URL(u);
+        x.hash = "";
+        [...x.searchParams.keys()].forEach(k => { if (/^(utm_|fbclid$|gclid$)/i.test(k)) x.searchParams.delete(k); });
+        let s = x.href;
+        if (s.endsWith("/")) s = s.slice(0, -1);
+        return s.toLowerCase();
+      } catch (_) { return String(u).toLowerCase(); }
+    }
+
+    function isFinePointer() {
+      return window.matchMedia && window.matchMedia("(pointer: fine)").matches;
+    }
+
+    // ============================================================
+    // CONFIG VALIDATION / PERSISTENCE
+    // ============================================================
+    function normalizeConfig(data) {
+      if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+      const out = {};
+      for (const key of Object.keys(data)) {
+        if (key === "__proto__" || key === "constructor" || key === "prototype") continue;
+        const item = data[key];
+        if (!item || typeof item !== "object") return null;
+        if (!Array.isArray(item.sites) || !Array.isArray(item.formats)) return null;
+
+        const sites = [];
+        for (const s of item.sites) {
+          if (!s || typeof s.domain !== "string" || typeof s.enabled !== "boolean") return null;
+          const domain = cleanDomain(s.domain);
+          if (domain && !sites.some(x => x.domain === domain)) sites.push({ domain, enabled: s.enabled });
+        }
+        const formats = ["all", ...new Set(
+          item.formats.map(f => String(f).trim().toLowerCase().replace(/^\./, "")).filter(f => f && f !== "all")
+        )];
+
+        out[key] = {
+          label: (typeof item.label === "string" && item.label.trim()) ? item.label.trim() : key,
+          icon: (typeof item.icon === "string" && item.icon.trim()) ? item.icon.trim() : "📁",
+          formats,
+          sites,
+          antiSlop: typeof item.antiSlop === "string" ? item.antiSlop : ""
+        };
+      }
+      return Object.keys(out).length ? out : null;
+    }
+
+    function loadSites() {
+      const stored = store.get("omni_sites_v3");
       if (stored) {
         try {
-          return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+          const parsed = normalizeConfig(JSON.parse(stored));
+          if (parsed) return parsed;
         } catch (_) {}
       }
-      return { ...DEFAULT_SETTINGS };
+      return clone(DEFAULT_CONFIGS);
+    }
+
+    function saveSites() {
+      if (!store.set("omni_sites_v3", JSON.stringify(state.sites))) {
+        showToast("Couldn't save — browser storage is unavailable.", "error");
+      }
+    }
+
+    function loadSettings() {
+      const stored = store.get("omni_settings_v3");
+      const s = { ...DEFAULT_SETTINGS };
+      if (stored) {
+        try { Object.assign(s, JSON.parse(stored)); } catch (_) {}
+      }
+      if (!["serper", "direct"].includes(s.providerMode)) s.providerMode = "serper";
+      if (!["rank", "relevance"].includes(s.sortMode)) s.sortMode = "rank";
+      return s;
     }
 
     function getApiKey() {
-      return (localStorage.getItem("serper_key") || "").trim().replace(/^["']|["']$/g, "");
+      return (store.get("serper_key") || "").trim().replace(/^["']|["']$/g, "");
     }
 
-    // State
-    let state = {
+    function loadHistory() {
+      try {
+        const a = JSON.parse(store.get(HISTORY_KEY) || "[]");
+        return Array.isArray(a) ? a.filter(x => typeof x === "string" && x.trim()).slice(0, HISTORY_MAX) : [];
+      } catch (_) { return []; }
+    }
+
+    function pushHistory(q) {
+      state.history = [q, ...state.history.filter(h => h.toLowerCase() !== q.toLowerCase())].slice(0, HISTORY_MAX);
+      store.set(HISTORY_KEY, JSON.stringify(state.history));
+    }
+
+    // ============================================================
+    // STATE
+    // ============================================================
+    const state = {
       category: "ebooks",
       format: "all",
       source: "all",
       query: "",
-      excludeTerms: localStorage.getItem("omni_exclude_terms") || "",
+      excludeTerms: store.get("omni_exclude_terms") || "",
       openDirectoryMode: false,
       page: 1,
       rawResults: [],
+      searched: false,        // true once the current rawResults came from a real search
       activeController: null,
+      searchSeq: 0,
       sites: loadSites(),
-      settings: loadSettings()
+      settings: loadSettings(),
+      history: loadHistory(),
+      lastFocus: null
     };
-
-    function validateConfig(data) {
-      if (!data || typeof data !== "object") return false;
-      for (const cat of Object.keys(data)) {
-        const item = data[cat];
-        if (!item || typeof item !== "object") return false;
-        if (!Array.isArray(item.sites) || !Array.isArray(item.formats)) return false;
-        for (const s of item.sites) {
-          if (!s || typeof s.domain !== "string" || typeof s.enabled !== "boolean") return false;
-        }
-      }
-      return true;
-    }
-
-    function loadSites() {
-      const stored = localStorage.getItem("omni_sites_v3");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (validateConfig(parsed)) return parsed;
-        } catch (_) {}
-      }
-      return JSON.parse(JSON.stringify(DEFAULT_CONFIGS));
-    }
-
-    function saveSites() {
-      localStorage.setItem("omni_sites_v3", JSON.stringify(state.sites));
-    }
+    let siteDraft = null;      // working copy while the site manager is open (so "Cancel" really cancels)
 
     // ============================================================
     // DOM REFERENCES
     // ============================================================
-    const $ = id => document.getElementById(id);
-    const queryInput        = $("query");
-    const goBtn             = $("go");
-    const odToggle          = $("od-toggle");
-    const resultsEl         = $("results");
-    const statusBar         = $("status-bar");
-    const resultSummary     = $("result-summary");
-    const timingBadge       = $("timing-badge");
-    const loadMoreBtn       = $("load-more-btn");
-    const alertBox          = $("alert-container");
-    const formatChips       = $("format-chips");
-    const sourceChips       = $("source-chips");
-    const sourceFilterRow   = $("source-filter-row");
-    const categoryTabs      = $("category-tabs");
-    const excludeFilter     = $("exclude-filter");
-    const settingsModal     = $("settings-modal");
-    const siteModal         = $("site-modal");
-    const categoryModal     = $("category-modal");
-    const siteListEl        = $("site-list");
-    const newSiteInput      = $("new-site-input");
-    const modalCatTitle     = $("modal-cat-title");
-    const deleteCatBtn      = $("delete-cat-btn");
-    const toastEl           = $("toast");
+    const queryInput      = $("query");
+    const searchForm      = $("search-form");
+    const clearBtn        = $("clear-btn");
+    const odToggle        = $("od-toggle");
+    const resultsEl       = $("results");
+    const statusBar       = $("status-bar");
+    const resultSummary   = $("result-summary");
+    const timingBadge     = $("timing-badge");
+    const sortSeg         = $("sort-seg");
+    const loadMoreBtn     = $("load-more-btn");
+    const alertBox        = $("alert-container");
+    const formatChips     = $("format-chips");
+    const sourceChips     = $("source-chips");
+    const sourceFilterRow = $("source-filter-row");
+    const categoryTabs    = $("category-tabs");
+    const excludeFilter   = $("exclude-filter");
+    const filterToggle    = $("filter-toggle");
+    const filterPanel     = $("filter-panel");
+    const filterCount     = $("filter-count");
+    const settingsModal   = $("settings-modal");
+    const siteModal       = $("site-modal");
+    const categoryModal   = $("category-modal");
+    const siteListEl      = $("site-list");
+    const newSiteInput    = $("new-site-input");
+    const modalCatTitle   = $("modal-cat-title");
+    const deleteCatBtn    = $("delete-cat-btn");
+    const toastEl         = $("toast");
 
     let coverObserver = null;
+    let toastTimer = null;
+
+    // ============================================================
+    // TOAST / ALERT
+    // ============================================================
+    function showToast(msg, type) {
+      toastEl.textContent = msg;
+      toastEl.classList.toggle("error", type === "error");
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), type === "error" ? 3200 : 2200);
+    }
+
+    function showAlert(msg, type = "error") {
+      alertBox.innerHTML = `<div class="alert ${type === "warn" ? "warn" : "error"}" role="alert">${escapeHtml(msg)}</div>`;
+    }
 
     // ============================================================
     // CATEGORY & FILTER RENDERING
     // ============================================================
+    function centerActive(container) {
+      const a = container.querySelector(".active");
+      if (!a || container.scrollWidth <= container.clientWidth) return;
+      container.scrollLeft = a.offsetLeft - (container.clientWidth - a.offsetWidth) / 2;
+    }
+
+    function sanitizeSource() {
+      const current = state.sites[state.category];
+      if (state.source !== "all" && !(current && current.sites.some(s => s.enabled && s.domain === state.source))) {
+        state.source = "all";
+      }
+    }
+
+    function activeFilterCount() {
+      let n = 0;
+      if (state.format !== "all") n++;
+      if (state.source !== "all" && !state.openDirectoryMode) n++;
+      if (state.excludeTerms.trim()) n++;
+      return n;
+    }
+
     function renderCategoryTabs() {
       const cats = Object.keys(state.sites);
       if (!cats.includes(state.category)) state.category = cats[0] || "ebooks";
 
       categoryTabs.innerHTML = cats.map(catKey => {
         const cat = state.sites[catKey];
-        return `
-          <button class="tab-btn ${state.category === catKey ? 'active' : ''}" data-category="${escapeHtml(catKey)}">
-            <span>${escapeHtml(cat.icon || '📁')}</span> ${escapeHtml(cat.label || catKey)}
-          </button>
-        `;
+        const active = state.category === catKey;
+        return `<button type="button" class="tab-btn ${active ? "active" : ""}" data-category="${escapeHtml(catKey)}" aria-pressed="${active}">
+            <span aria-hidden="true">${escapeHtml(cat.icon || "📁")}</span> ${escapeHtml(cat.label || catKey)}
+          </button>`;
       }).join("");
+      centerActive(categoryTabs);
     }
 
     function renderFilters() {
       renderCategoryTabs();
       const current = state.sites[state.category];
       if (!current) return;
+      sanitizeSource();
 
-      formatChips.innerHTML = current.formats.map(fmt => `
-        <button class="chip ${state.format === fmt ? 'active' : ''}" data-format="${escapeHtml(fmt)}">
-          ${escapeHtml(fmt.toUpperCase())}
-        </button>
-      `).join("");
+      formatChips.innerHTML = current.formats.map(fmt => {
+        const active = state.format === fmt;
+        return `<button type="button" class="chip ${active ? "active" : ""}" data-format="${escapeHtml(fmt)}" aria-pressed="${active}">${escapeHtml(fmt.toUpperCase())}</button>`;
+      }).join("");
 
       if (state.openDirectoryMode) {
-        sourceFilterRow.style.display = "none";
+        sourceFilterRow.hidden = true;
       } else {
-        sourceFilterRow.style.display = "flex";
+        sourceFilterRow.hidden = false;
         const activeSites = current.sites.filter(s => s.enabled);
-        let sourceHTML = `<button class="chip ${state.source === 'all' ? 'active' : ''}" data-source="all">All Sources</button>`;
+        let html = `<button type="button" class="chip ${state.source === "all" ? "active" : ""}" data-source="all" aria-pressed="${state.source === "all"}">All Sources</button>`;
         activeSites.forEach(s => {
-          sourceHTML += `<button class="chip ${state.source === s.domain ? 'active' : ''}" data-source="${escapeHtml(s.domain)}">${escapeHtml(s.domain)}</button>`;
+          const active = state.source === s.domain;
+          html += `<button type="button" class="chip ${active ? "active" : ""}" data-source="${escapeHtml(s.domain)}" aria-pressed="${active}">${escapeHtml(s.domain)}</button>`;
         });
-        sourceChips.innerHTML = sourceHTML;
+        sourceChips.innerHTML = html;
       }
+
+      sortSeg.hidden = state.openDirectoryMode;
+      sortSeg.querySelectorAll(".seg-btn").forEach(b => {
+        const on = b.dataset.sort === state.settings.sortMode;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-pressed", String(on));
+      });
+
+      const n = activeFilterCount();
+      filterCount.textContent = n;
+      filterCount.hidden = n === 0;
+
+      odToggle.classList.toggle("active", state.openDirectoryMode);
+      odToggle.setAttribute("aria-pressed", String(state.openDirectoryMode));
+
+      centerActive(formatChips);
+      centerActive(sourceChips);
     }
 
     function syncUrlParams() {
-      const params = new URLSearchParams();
-      if (state.query) params.set("q", state.query);
-      params.set("cat", state.category);
-      if (state.format !== "all") params.set("fmt", state.format);
-      if (state.source !== "all") params.set("src", state.source);
-      if (state.openDirectoryMode) params.set("od", "1");
-      window.history.replaceState({}, "", `${location.pathname}?${params.toString()}`);
+      try {
+        const params = new URLSearchParams();
+        if (state.query) params.set("q", state.query);
+        params.set("cat", state.category);
+        if (state.format !== "all") params.set("fmt", state.format);
+        if (state.source !== "all") params.set("src", state.source);
+        if (state.openDirectoryMode) params.set("od", "1");
+        window.history.replaceState(null, "", `${location.pathname}?${params.toString()}`);
+      } catch (_) {}
+      document.title = state.query ? `${state.query} — OmniSearch` : "OmniSearch — Precision Document & Media Engine";
     }
 
-    function buildQueryPayload() {
-      const q = queryInput.value.trim();
+    // ============================================================
+    // QUERY BUILDING (single source of truth for API + direct links)
+    // ============================================================
+    function buildQueries(q = state.query) {
       const current = state.sites[state.category];
-      if (!q || !current) return "";
+      q = (q || "").trim().replace(/\s+/g, " ");
+      if (!q || !current) return [];
+
+      if (state.openDirectoryMode) {
+        const formats = state.format === "all" ? current.formats.filter(f => f !== "all") : [state.format];
+        const clause = formats.length ? `(${formats.join(" OR ")}) ` : "";
+        const term = q.replace(/"/g, "");
+        return [
+          `intitle:"index of /" ${clause}"${term}" -html -htm -php -asp -jsp`,
+          `intitle:"index.of" ${clause}"${term}" -html -htm -php -asp -jsp`
+        ];
+      }
 
       const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
       const slopFilter = (state.settings.antiSlop && current.antiSlop) ? ` ${current.antiSlop}` : "";
 
-      if (state.openDirectoryMode) {
-        const rawFormats = state.format === "all"
-          ? current.formats.filter(f => f !== 'all')
-          : [state.format];
-        const formatClause = rawFormats.length ? `(${rawFormats.join(" OR ")})` : "";
-        return `intitle:"index of" ${formatClause} "${q}" -html -htm -php -asp -jsp`;
+      // A specific source gets the whole result page to itself
+      if (state.source !== "all") return [`${q}${formatSuffix} site:${state.source}${slopFilter}`];
+
+      const domains = current.sites.filter(s => s.enabled).map(s => s.domain);
+      const out = [];
+      for (let i = 0; i < domains.length; i += CHUNK_SIZE) {
+        const siteClause = "(" + domains.slice(i, i + CHUNK_SIZE).map(d => `site:${d}`).join(" OR ") + ")";
+        out.push(`${q}${formatSuffix} ${siteClause}${slopFilter}`);
       }
-
-      const activeSites = current.sites.filter(s => s.enabled);
-      const siteClause = activeSites.length ? " (" + activeSites.map(s => `site:${s.domain}`).join(" OR ") + ")" : "";
-      return `${q}${formatSuffix}${siteClause}${slopFilter}`;
+      return out;
     }
 
-    function updateDirectLinks() {
-      const fullQuery = buildQueryPayload();
-      if (!fullQuery) return;
-
-      $("open-google").href = `https://www.google.com/search?q=${encodeURIComponent(fullQuery)}`;
-      $("open-ddg").href = `https://duckduckgo.com/?q=${encodeURIComponent(fullQuery)}`;
-      $("open-yandex").href = `https://yandex.com/search/?text=${encodeURIComponent(fullQuery)}`;
+    function updateDirectLinks(queries) {
+      const first = queries[0];
+      if (!first) return;
+      const note = queries.length > 1 ? "Top-ranked sources only (Google's query-length limit). Pick a Source chip to target another." : "";
+      [["open-google", `https://www.google.com/search?q=`],
+       ["open-ddg", `https://duckduckgo.com/?q=`],
+       ["open-yandex", `https://yandex.com/search/?text=`]].forEach(([id, base]) => {
+        const a = $(id);
+        a.href = base + encodeURIComponent(first);
+        a.title = note;
+      });
     }
 
     // ============================================================
-    // STRICT HIERARCHY SEARCH ALGORITHM
+    // SEARCH
     // ============================================================
-    function matchDomainRank(hostname, activeSites) {
-      if (state.openDirectoryMode) return 0;
-      const host = (hostname || "").toLowerCase().trim();
-      for (let i = 0; i < activeSites.length; i++) {
-        const target = activeSites[i].domain.toLowerCase().trim();
-        if (host === target || host.endsWith("." + target)) {
-          return i;
+    function abortActive() {
+      if (state.activeController) { state.activeController.abort(); state.activeController = null; }
+    }
+
+    async function fetchSerper(fullQuery, apiKey, page, signal) {
+      const res = await fetch("https://google.serper.dev/search", {
+        method: "POST",
+        signal,
+        headers: { "X-API-KEY": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ q: fullQuery, num: 10, page })
+      });
+      let data = null;
+      try { data = await res.json(); } catch (_) {}
+
+      if (!res.ok) {
+        const errMsg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
+        if (res.status === 401 || res.status === 403) throw new Error(`Authentication Error: Invalid or expired Serper API key. (${errMsg})`);
+        if (res.status === 400) throw new Error(`Bad Request: Serper rejected the search query format. (${errMsg})`);
+        if (res.status === 429) throw new Error(`Rate limit or credits exhausted on Serper. (${errMsg})`);
+        throw new Error(`Serper API Error: ${errMsg}`);
+      }
+      return data;
+    }
+
+    function showDirectMode(userInitiated, hasKey, queries) {
+      abortActive();
+      state.searchSeq++;
+      state.rawResults = [];
+      state.searched = false;
+      loadMoreBtn.style.display = "none";
+      alertBox.innerHTML = "";
+      statusBar.hidden = false;
+      sortSeg.hidden = true;
+      timingBadge.textContent = "";
+      resultSummary.textContent = "Direct search mode";
+
+      const googleHref = $("open-google").href;
+      const why = (!hasKey && state.settings.providerMode === "serper")
+        ? "No Serper API key is set, so results open on the search engine itself."
+        : "Direct mode opens your query on the search engine of your choice.";
+      resultsEl.innerHTML = `
+        <div class="empty-state">
+          <div class="big" aria-hidden="true">🔎</div>
+          <h2>Ready to search outside the app</h2>
+          <p>${escapeHtml(why)} Add a Serper key in Settings for aggregated, ranked results in here.</p>
+          <div style="display:flex; gap:0.5rem; justify-content:center; flex-wrap:wrap;">
+            <a class="btn btn-primary" href="${escapeHtml(googleHref)}" target="_blank" rel="noopener noreferrer">Open in Google ↗</a>
+            <button type="button" class="btn btn-secondary" data-action="settings">Open Settings</button>
+          </div>
+          ${queries.length > 1 ? `<p class="hint">Showing your top-ranked ${CHUNK_SIZE} sources (Google's query-length limit). Pick a Source chip to target another.</p>` : ""}
+        </div>`;
+
+      if (userInitiated) {
+        if (!hasKey && state.settings.providerMode === "serper") showToast("No Serper key set — opening Google directly.");
+        window.open(googleHref, "_blank", "noopener,noreferrer");
+      }
+    }
+
+    async function search({ append = false, userInitiated = false } = {}) {
+      if (!append) {
+        const typed = queryInput.value.trim();
+        if (!typed) {
+          if (userInitiated) { showToast("Type something to search.", "error"); queryInput.focus(); }
+          return;
         }
+        state.query = typed;
+        pushHistory(typed);
       }
-      return 999;
-    }
-
-    async function search(append = false) {
-      const q = queryInput.value.trim();
-      if (!q) return;
-
-      state.query = q;
+      if (!state.query) return;
       syncUrlParams();
-      updateDirectLinks();
+
+      const queries = buildQueries();
+      updateDirectLinks(queries);
 
       const apiKey = getApiKey();
       if (state.settings.providerMode === "direct" || !apiKey) {
-        if (!apiKey && state.settings.providerMode === "serper") {
-          showToast("No Serper Key set. Opening Direct Search.");
-        }
-        window.open($("open-google").href, "_blank", "noopener,noreferrer");
+        showDirectMode(userInitiated, !!apiKey, queries);
         return;
       }
 
-      if (!append) {
-        state.page = 1;
-        state.rawResults = [];
-      } else {
+      const current = state.sites[state.category];
+      if (!state.openDirectoryMode && !current.sites.some(s => s.enabled)) {
+        showAlert("No enabled sources in this category.", "error");
+        return;
+      }
+
+      let nextPage = 1;
+      if (append) {
         if (state.openDirectoryMode) return;
         if (state.page >= MAX_PAGE) {
           showToast(`Reached max search depth (${MAX_PAGE}/${MAX_PAGE}).`);
           loadMoreBtn.disabled = true;
           return;
         }
-        state.page += 1;
+        nextPage = state.page + 1;
       }
 
-      const current = state.sites[state.category];
-      const activeSites = current.sites.filter(s => s.enabled);
-      if (!activeSites.length && !state.openDirectoryMode) {
-        showAlert("No enabled sources in this category.", "error");
-        return;
-      }
+      abortActive();
+      const controller = new AbortController();
+      state.activeController = controller;
+      const seq = ++state.searchSeq;
+      let timedOut = false;
+      const timer = setTimeout(() => { timedOut = true; controller.abort(); }, REQUEST_TIMEOUT_MS);
 
-      if (state.activeController) state.activeController.abort();
-      state.activeController = new AbortController();
-
-      if (!append) renderSkeletons();
-      statusBar.style.display = "flex";
+      if (!append) { state.rawResults = []; state.searched = false; renderSkeletons(); }
+      else { loadMoreBtn.disabled = true; loadMoreBtn.textContent = "Loading…"; }
+      statusBar.hidden = false;
       resultSummary.textContent = state.openDirectoryMode ? "Scanning open server directories..." : "Querying prioritized sources...";
       timingBadge.textContent = "";
       alertBox.innerHTML = "";
 
       const startTime = performance.now();
-      let queryList = [];
-
-      if (state.openDirectoryMode) {
-        const rawFormats = state.format === "all"
-          ? current.formats.filter(f => f !== 'all')
-          : [state.format];
-        const formatClause = rawFormats.length ? `(${rawFormats.join(" OR ")})` : "";
-        queryList = [
-          `intitle:"index of /" ${formatClause} "${q}" -html -htm -php -asp -jsp`,
-          `intitle:"index.of" ${formatClause} "${q}" -html -htm -php -asp -jsp`
-        ];
-      } else if (state.source !== "all") {
-        // FIX 1: If a specific site is selected, reserve all 10 results exclusively for it
-        const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
-        const slopFilter = (state.settings.antiSlop && current.antiSlop) ? ` ${current.antiSlop}` : "";
-        queryList = [`${q}${formatSuffix} site:${state.source}${slopFilter}`];
-      } else {
-        const domains = activeSites.map(s => s.domain);
-        const formatSuffix = state.format === "all" ? "" : ` filetype:${state.format}`;
-        const slopFilter = (state.settings.antiSlop && current.antiSlop) ? ` ${current.antiSlop}` : "";
-
-        for (let i = 0; i < domains.length; i += 6) {
-          const chunk = domains.slice(i, i + 6);
-          const siteClause = "(" + chunk.map(d => `site:${d}`).join(" OR ") + ")";
-          queryList.push(`${q}${formatSuffix} ${siteClause}${slopFilter}`);
-        }
-      }
+      const activeDomains = current.sites.filter(s => s.enabled).map(s => s.domain.toLowerCase());
 
       try {
-        const requests = queryList.map(fullQuery => {
-          return fetch("https://google.serper.dev/search", {
-            method: "POST",
-            signal: state.activeController.signal,
-            headers: {
-              "X-API-KEY": apiKey,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              q: fullQuery,
-              num: 10,
-              page: state.page
-            })
-          }).then(async res => {
-            let data = null;
-            try {
-              data = await res.json();
-            } catch (_) {}
+        // allSettled: one failing chunk shouldn't throw away the chunks that worked
+        const settled = await Promise.allSettled(queries.map(fq => fetchSerper(fq, apiKey, nextPage, controller.signal)));
+        if (seq !== state.searchSeq) return; // a newer search took over
 
-            if (!res.ok) {
-              const errMsg = (data && (data.message || data.error)) || `HTTP ${res.status}`;
-              if (res.status === 401 || res.status === 403) {
-                throw new Error(`Authentication Error: Invalid or expired Serper API key. (${errMsg})`);
-              } else if (res.status === 400) {
-                throw new Error(`Bad Request: Serper rejected the search query format. (${errMsg})`);
-              } else {
-                throw new Error(`Serper API Error: ${errMsg}`);
-              }
-            }
+        const fulfilled = settled.filter(s => s.status === "fulfilled").map(s => s.value);
+        const rejected = settled.filter(s => s.status === "rejected").map(s => s.reason);
 
-            return data;
-          });
-        });
+        if (!fulfilled.length) {
+          const real = rejected.find(r => !(r && r.name === "AbortError")) || rejected[0];
+          throw real || new Error("Search failed.");
+        }
 
-        const responses = await Promise.all(requests);
-        const seenUrls = new Set(state.rawResults.map(r => r.link));
-        let incoming = [];
+        const seen = new Set(state.rawResults.map(r => normalizeUrl(r.link)));
+        const incoming = [];
+        let returned = 0;
 
-        responses.forEach(data => {
-          if (!data) return;
-          (data.organic || []).forEach((item, searchEngineIndex) => {
-            if (seenUrls.has(item.link)) return;
-            seenUrls.add(item.link);
+        fulfilled.forEach(data => {
+          const organic = (data && data.organic) || [];
+          returned += organic.length;
+          organic.forEach((item, idx) => {
+            if (!item || !item.link) return;
+            const key = normalizeUrl(item.link);
+            if (seen.has(key)) return;
+            seen.add(key);
 
-            let host = "";
-            try { host = new URL(item.link).hostname.replace(/^www\./, "").toLowerCase(); } catch (_) {}
+            let host = "", pathname = "";
+            try { const u = new URL(item.link); host = u.hostname.replace(/^www\./, "").toLowerCase(); pathname = u.pathname; } catch (_) {}
 
-            let detectedSize = null;
-            let detectedYear = null;
-
+            const title = item.title || "";
+            const snippet = item.snippet || "";
+            let detectedSize = null, detectedYear = null;
             if (state.settings.extractMetadata) {
-              const sizeMatch = (item.snippet || "").match(/\b\d+(\.\d+)?\s*(KB|MB|GB)\b/i);
+              const sizeMatch = snippet.match(/\b\d+(\.\d+)?\s*(KB|MB|GB)\b/i);
               if (sizeMatch) detectedSize = sizeMatch[0].toUpperCase();
-
-              const yearMatch = (item.title + " " + item.snippet).match(/\b(19\d\d|20[0-2]\d)\b/);
+              const yearMatch = (title + " " + snippet).match(/\b(19\d\d|20[0-2]\d)\b/);
               if (yearMatch) detectedYear = yearMatch[0];
             }
 
+            let rankScore = 999;
+            if (!state.openDirectoryMode) {
+              for (let i = 0; i < activeDomains.length; i++) {
+                if (hostMatches(host, activeDomains[i])) { rankScore = i; break; }
+              }
+            } else { rankScore = 0; }
+
             incoming.push({
-              title: item.title || item.link,
+              title: title || item.link,
               link: item.link,
-              snippet: item.snippet || "No description provided.",
+              snippet: snippet || "No description provided.",
               displayLink: host,
+              isDirect: /\.(epub|pdf|mobi|azw3|apk|xapk|obb|mp3|m4b|m4a|cbz|cbr)$/i.test(pathname),
               detectedSize,
               detectedYear,
-              rankScore: matchDomainRank(host, activeSites),
-              relevanceScore: searchEngineIndex
+              rankScore,
+              relevanceScore: (nextPage - 1) * 10 + idx
             });
           });
         });
 
-        const fullPool = append ? [...state.rawResults, ...incoming] : incoming;
-        fullPool.sort((a, b) => {
-          if (a.rankScore !== b.rankScore) return a.rankScore - b.rankScore;
-          return a.relevanceScore - b.relevanceScore;
-        });
-
-        state.rawResults = fullPool;
-        const duration = ((performance.now() - startTime) / 1000).toFixed(2);
-        timingBadge.textContent = `${duration}s`;
+        state.rawResults = append ? [...state.rawResults, ...incoming] : incoming;
+        state.page = nextPage;
+        state.searched = true;
+        timingBadge.textContent = `${((performance.now() - startTime) / 1000).toFixed(2)}s`;
 
         renderResults();
+        if (rejected.length && !rejected.every(r => r && r.name === "AbortError")) {
+          showAlert(`${rejected.length} of ${settled.length} source groups failed — showing partial results.`, "warn");
+        }
 
         if (state.openDirectoryMode) {
           loadMoreBtn.style.display = "none";
-        } else if (incoming.length >= 5 && state.page < MAX_PAGE) {
-          loadMoreBtn.style.display = "block";
-          loadMoreBtn.disabled = false;
-          loadMoreBtn.textContent = `Load More Results (Page ${state.page + 1}/${MAX_PAGE})`;
-        } else if (state.page >= MAX_PAGE) {
+        } else if (state.page >= MAX_PAGE && returned >= 5) {
           loadMoreBtn.style.display = "block";
           loadMoreBtn.disabled = true;
           loadMoreBtn.textContent = `Max Depth Reached (${MAX_PAGE}/${MAX_PAGE})`;
+        } else if (returned >= 5) {
+          loadMoreBtn.style.display = "block";
+          loadMoreBtn.disabled = false;
+          loadMoreBtn.textContent = `Load More Results (Page ${state.page + 1}/${MAX_PAGE})`;
         } else {
           loadMoreBtn.style.display = "none";
         }
-
       } catch (err) {
-        if (err.name === "AbortError") return;
+        if (seq !== state.searchSeq) return;
+        if (err && err.name === "AbortError") {
+          if (!timedOut) return;
+          err = new Error("The search timed out. Check your connection and try again.");
+        }
         if (!append) resultsEl.innerHTML = "";
-        loadMoreBtn.style.display = "none";
-        showAlert(err.message, "error");
+        else { loadMoreBtn.disabled = false; loadMoreBtn.textContent = "Retry Load More"; }
+        if (!append) loadMoreBtn.style.display = "none";
+        resultSummary.textContent = "Search failed";
+        showAlert(err.message || "Search failed.", "error");
       } finally {
-        state.activeController = null;
+        clearTimeout(timer);
+        if (state.activeController === controller) state.activeController = null;
       }
     }
 
     // ============================================================
     // RESULTS RENDERER
     // ============================================================
-    function renderResults() {
-      let items = state.rawResults;
+    function getVisibleItems() {
+      let items = state.rawResults.slice();
 
       if (!state.openDirectoryMode && state.source !== "all") {
-        items = items.filter(r => r.displayLink.includes(state.source.toLowerCase()));
+        items = items.filter(r => hostMatches(r.displayLink, state.source));
       }
 
-      if (state.excludeTerms.trim()) {
-        const terms = state.excludeTerms.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-        if (terms.length) {
-          items = items.filter(item => {
-            const haystack = (item.title + " " + item.snippet + " " + item.link).toLowerCase();
-            return !terms.some(t => haystack.includes(t));
-          });
-        }
+      let hidden = 0;
+      const terms = state.excludeTerms.split(",").map(t => t.trim().toLowerCase()).filter(Boolean);
+      if (terms.length) {
+        const before = items.length;
+        items = items.filter(item => {
+          const haystack = (item.title + " " + item.snippet + " " + item.link).toLowerCase();
+          return !terms.some(t => haystack.includes(t));
+        });
+        hidden = before - items.length;
       }
 
-      // FIX 2: Direct on-site fallback button if Google returns 0 indexed results
+      const byRelevance = state.openDirectoryMode || state.settings.sortMode === "relevance";
+      items.sort((a, b) => {
+        if (!byRelevance && a.rankScore !== b.rankScore) return a.rankScore - b.rankScore;
+        return a.relevanceScore - b.relevanceScore;
+      });
+      return { items, hidden };
+    }
+
+    function renderResults() {
+      const { items, hidden } = getVisibleItems();
+      statusBar.hidden = false;
+      sortSeg.hidden = state.openDirectoryMode;
+
       if (!items.length) {
-        statusBar.style.display = "flex";
-        resultSummary.textContent = "No matches.";
-        
-        const fallbackUrl = state.source !== "all" 
-          ? `https://${state.source}/search?q=${encodeURIComponent(state.query)}`
-          : `https://www.google.com/search?q=${encodeURIComponent(buildQueryPayload())}`;
+        resultSummary.textContent = hidden ? `${hidden} hidden by Scrub` : "No matches.";
 
+        if (hidden) {
+          resultsEl.innerHTML = `
+            <div class="empty-state">
+              <div class="big" aria-hidden="true">🧹</div>
+              <h2>Everything was scrubbed</h2>
+              <p>Your exclude terms hid all ${hidden} results.</p>
+              <button type="button" class="btn btn-secondary" data-action="clear-scrub">Clear Scrub filter</button>
+            </div>`;
+          return;
+        }
+
+        const fallbackUrl = state.source !== "all"
+          ? `https://${state.source}/search?q=${encodeURIComponent(state.query)}`
+          : $("open-google").href;
         resultsEl.innerHTML = `
-          <div style="text-align:center; padding:3rem 1rem; color:var(--text-dim);">
-            <p style="font-size:0.95rem; margin-bottom:0.4rem;">
-              ${state.source !== "all" 
-                ? `Google has no indexed pages for <strong>${escapeHtml(state.source)}</strong> matching "${escapeHtml(state.query)}".` 
-                : 'No results found matching your query.'}
-            </p>
-            ${state.source !== "all" ? `
-              <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1.25rem;">
-                This repository may protect its database from search crawlers.
-              </p>
-              <a href="${escapeHtml(fallbackUrl)}" target="_blank" rel="noopener noreferrer" 
-                 class="btn btn-primary" style="display:inline-flex; align-items:center; gap:0.4rem; text-decoration:none;">
-                Search Directly on ${escapeHtml(state.source)} ↗
-              </a>
-            ` : ''}
-          </div>
-        `;
+          <div class="empty-state">
+            <div class="big" aria-hidden="true">🕳️</div>
+            <h2>${state.source !== "all"
+                ? `No indexed pages on ${escapeHtml(state.source)}`
+                : "No results found"}</h2>
+            <p>${state.source !== "all"
+                ? `Google has nothing for “${escapeHtml(state.query)}” there — the site may block search crawlers.`
+                : "Try fewer keywords, another format, or switch on a different category."}</p>
+            <a href="${escapeHtml(safeUrl(fallbackUrl))}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              ${state.source !== "all" ? `Search directly on ${escapeHtml(state.source)} ↗` : "Try on Google ↗"}
+            </a>
+          </div>`;
         return;
       }
 
-      statusBar.style.display = "flex";
-      resultSummary.textContent = `Showing ${items.length} items (${state.openDirectoryMode ? 'Open Directories' : 'Rank Prioritized'})`;
+      resultSummary.textContent =
+        `Showing ${items.length} item${items.length === 1 ? "" : "s"} ` +
+        `(${state.openDirectoryMode ? "Open Directories" : state.settings.sortMode === "relevance" ? "Relevance" : "Rank Prioritized"})` +
+        (hidden ? ` · ${hidden} hidden` : "");
 
-      resultsEl.innerHTML = items.map((item) => {
-        const isDirect = /\.(epub|pdf|mobi|azw3|apk|xapk|obb|mp3|m4b|m4a|cbz|cbr)$/i.test(item.link);
-
+      const showCovers = state.settings.showCovers && state.category === "ebooks" && !state.openDirectoryMode;
+      resultsEl.innerHTML = items.map(item => {
+        const href = escapeHtml(safeUrl(item.link));
         return `
           <article class="result-card">
-            ${state.settings.showCovers && state.category === 'ebooks' && !state.openDirectoryMode ? `
-              <img class="book-cover lazy-cover" 
-                   data-title="${escapeHtml(item.title)}" 
-                   src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='58' height='82' fill='%231a2030'%3E%3Crect width='58' height='82'/%3E%3C/svg%3E" 
-                   alt="Cover" />
-            ` : ''}
+            ${showCovers ? `
+              <img class="book-cover lazy-cover" width="58" height="82" decoding="async"
+                   data-title="${escapeHtml(item.title)}"
+                   src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='58' height='82' fill='%231a2030'%3E%3Crect width='58' height='82'/%3E%3C/svg%3E"
+                   alt="" />
+            ` : ""}
             <div class="result-content">
               <div class="result-header">
                 <h2 class="result-title">
-                  <a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
+                  <a href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
                 </h2>
                 <div class="header-badges">
-                  ${isDirect ? `<span class="badge-direct">DIRECT FILE</span>` : ''}
-                  ${state.openDirectoryMode ? `<span class="badge-od">DIRECTORY</span>` : ''}
+                  ${item.isDirect ? `<span class="badge-direct">DIRECT FILE</span>` : ""}
+                  ${state.openDirectoryMode ? `<span class="badge-od">DIRECTORY</span>` : ""}
                 </div>
               </div>
               <p class="result-snippet">${escapeHtml(item.snippet)}</p>
               <div class="result-meta">
                 <div class="meta-left">
                   <span class="source-tag">${escapeHtml(item.displayLink)}</span>
-                  ${!state.openDirectoryMode && item.rankScore !== 999 ? `<span class="rank-tag">Rank #${item.rankScore + 1}</span>` : ""}
+                  ${!state.openDirectoryMode && item.rankScore !== 999 ? `<span class="rank-tag" title="Position in your site ranking">Rank #${item.rankScore + 1}</span>` : ""}
                   ${item.detectedSize ? `<span class="meta-tag">💾 ${escapeHtml(item.detectedSize)}</span>` : ""}
                   ${item.detectedYear ? `<span class="meta-tag">📅 ${escapeHtml(item.detectedYear)}</span>` : ""}
                 </div>
                 <div class="meta-actions">
-                  <button class="meta-btn copy-btn" data-url="${escapeHtml(item.link)}">📋 Copy</button>
-                  <a href="https://web.archive.org/web/*/${escapeHtml(item.link)}" target="_blank" rel="noopener" class="meta-btn">🏛️ Archive</a>
+                  <button type="button" class="meta-btn copy-btn" data-url="${href}">📋 Copy</button>
+                  <a href="https://web.archive.org/web/*/${href}" target="_blank" rel="noopener noreferrer" class="meta-btn">🏛️ Archive</a>
                 </div>
               </div>
             </div>
-          </article>
-        `;
+          </article>`;
       }).join("");
 
-      if (state.settings.showCovers && state.category === 'ebooks' && !state.openDirectoryMode) {
-        setupCoverObserver();
-      }
-    }
-
-    function setupCoverObserver() {
-      if (coverObserver) coverObserver.disconnect();
-      coverObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            observer.unobserve(img);
-            const title = img.dataset.title;
-            if (title) fetchCover(img, title);
-          }
-        });
-      }, { rootMargin: "150px 0px" });
-
-      document.querySelectorAll(".lazy-cover").forEach(img => coverObserver.observe(img));
-    }
-
-    async function fetchCover(imgEl, rawTitle) {
-      const cleanTitle = rawTitle.replace(/\[.*?\]|\(.*?\)|free download|pdf|epub/gi, "").trim();
-      try {
-        const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(cleanTitle)}&limit=1`);
-        const data = await res.json();
-        if (data.docs && data.docs[0] && data.docs[0].cover_i) {
-          imgEl.src = `https://covers.openlibrary.org/b/id/${data.docs[0].cover_i}-S.jpg`;
-        }
-      } catch (_) {}
+      if (showCovers) setupCoverObserver();
     }
 
     function renderSkeletons() {
       resultsEl.innerHTML = Array(3).fill(0).map(() => `
-        <div style="background:var(--surface); border:1px solid var(--surface-border); border-radius:var(--radius); padding:1.25rem; display:flex; flex-direction:column; gap:0.75rem;">
-          <div style="height:14px; width:50%; background:rgba(255,255,255,0.05); border-radius:4px;"></div>
-          <div style="height:12px; width:90%; background:rgba(255,255,255,0.03); border-radius:4px;"></div>
-        </div>
-      `).join("");
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-line" style="width:50%;"></div>
+          <div class="skeleton-line" style="width:90%; height:11px;"></div>
+          <div class="skeleton-line" style="width:70%; height:11px;"></div>
+        </div>`).join("");
+    }
+
+    function renderEmptyState() {
+      statusBar.hidden = true;
+      loadMoreBtn.style.display = "none";
+      alertBox.innerHTML = "";
+      const cat = state.sites[state.category];
+      if (!cat) return;
+      const hist = state.history;
+      resultsEl.innerHTML = `
+        <div class="empty-state">
+          <div class="big" aria-hidden="true">${escapeHtml(cat.icon || "🔎")}</div>
+          <h2>Search ${escapeHtml(cat.label)}</h2>
+          <p>Results are pulled from your ${cat.sites.filter(s => s.enabled).length} enabled sources and ordered by your ranking.</p>
+          ${hist.length ? `
+            <div class="recent-label">Recent searches</div>
+            <div class="chips">
+              ${hist.map(h => `<button type="button" class="chip" data-recent="${escapeHtml(h)}">${escapeHtml(h)}</button>`).join("")}
+            </div>
+            <button type="button" class="link-btn" data-action="clear-history" style="margin-top:0.6rem;">Clear history</button>
+          ` : ""}
+          <p class="hint kbd-hint">Press <kbd>/</kbd> anywhere to jump to the search box.</p>
+        </div>`;
+    }
+
+    // ---------- Covers (cached + throttled) ----------
+    const coverCache = new Map();
+    const coverQueue = [];
+    let coverActive = 0;
+
+    function cleanCoverTitle(raw) {
+      return String(raw || "")
+        .replace(/\[.*?\]|\(.*?\)/g, " ")
+        .replace(/\s*[-|–—]\s*(anna.?s archive|z-?library|libgen|[\w.-]+\.(com|org|net|io|se|is|rs|st|sk|pub)).*$/i, " ")
+        .replace(/\b(free\s+)?(download|pdf|epub|mobi|azw3|e-?book|online|read)\b/gi, " ")
+        .replace(/\s+/g, " ").trim().slice(0, 120);
+    }
+
+    function pumpCovers() {
+      while (coverActive < 3 && coverQueue.length) {
+        const { key, resolve } = coverQueue.shift();
+        coverActive++;
+        fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(key)}&limit=1&fields=cover_i`)
+          .then(r => (r.ok ? r.json() : null))
+          .then(d => resolve(d && d.docs && d.docs[0] && d.docs[0].cover_i
+            ? `https://covers.openlibrary.org/b/id/${d.docs[0].cover_i}-M.jpg` : null))
+          .catch(() => resolve(null))
+          .finally(() => { coverActive--; pumpCovers(); });
+      }
+    }
+
+    function fetchCover(imgEl, rawTitle) {
+      const key = cleanCoverTitle(rawTitle);
+      if (!key) return;
+      const apply = url => { if (url) imgEl.src = url; };
+      if (coverCache.has(key)) {
+        const v = coverCache.get(key);
+        if (v && typeof v.then === "function") v.then(apply); else apply(v);
+        return;
+      }
+      const p = new Promise(resolve => { coverQueue.push({ key, resolve }); pumpCovers(); });
+      coverCache.set(key, p);
+      p.then(url => { coverCache.set(key, url); apply(url); });
+    }
+
+    function setupCoverObserver() {
+      if (coverObserver) coverObserver.disconnect();
+      if (!("IntersectionObserver" in window)) {
+        document.querySelectorAll(".lazy-cover").forEach(img => fetchCover(img, img.dataset.title));
+        return;
+      }
+      coverObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          observer.unobserve(entry.target);
+          if (entry.target.dataset.title) fetchCover(entry.target, entry.target.dataset.title);
+        });
+      }, { rootMargin: "200px 0px" });
+      document.querySelectorAll(".lazy-cover").forEach(img => coverObserver.observe(img));
+    }
+
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); return true; }
+      catch (_) {
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.cssText = "position:fixed;opacity:0;top:0;left:0;";
+          document.body.appendChild(ta);
+          ta.select();
+          const ok = document.execCommand("copy");
+          ta.remove();
+          return ok;
+        } catch (_) { return false; }
+      }
     }
 
     // ============================================================
-    // SITE MANAGER & DEDICATED TOGGLE SWITCH
+    // MODALS (focus handling, Esc, backdrop, focus trap)
     // ============================================================
+    function openModal(modal, focusEl) {
+      state.lastFocus = document.activeElement;
+      modal.classList.add("active");
+      document.body.classList.add("modal-open");
+      const target = focusEl || modal.querySelector(".modal-box");
+      if (target) target.focus({ preventScroll: true });
+    }
+
+    function closeModal(modal) {
+      modal.classList.remove("active");
+      if (!document.querySelector(".modal.active")) document.body.classList.remove("modal-open");
+      if (state.lastFocus && typeof state.lastFocus.focus === "function" && document.contains(state.lastFocus)) {
+        state.lastFocus.focus({ preventScroll: true });
+      }
+    }
+
+    function requestClose(modal) {
+      if (modal === siteModal) closeSiteManager();
+      else closeModal(modal);
+    }
+
+    [categoryModal, siteModal, settingsModal].forEach(modal => {
+      modal.addEventListener("mousedown", e => { if (e.target === modal) requestClose(modal); });
+    });
+
+    document.addEventListener("keydown", e => {
+      const activeModal = [...document.querySelectorAll(".modal.active")].pop();
+
+      if (e.key === "Escape" && activeModal) { e.preventDefault(); requestClose(activeModal); return; }
+
+      if (e.key === "Tab" && activeModal) {
+        const focusables = [...activeModal.querySelectorAll('button:not([disabled]), input:not([type="hidden"]):not([disabled]), select:not([disabled]), a[href]')]
+          .filter(el => el.offsetParent !== null || el === document.activeElement);
+        if (!focusables.length) return;
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (!activeModal.contains(document.activeElement) || document.activeElement.classList.contains("modal-box")) {
+          e.preventDefault(); (e.shiftKey ? last : first).focus();
+        } else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        return;
+      }
+
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey && !activeModal &&
+          !/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "")) {
+        e.preventDefault();
+        queryInput.focus();
+        queryInput.select();
+      }
+    });
+
+    // ============================================================
+    // SITE MANAGER (edits a draft; nothing is saved until "Apply")
+    // ============================================================
+    function isDefaultCategory(key) {
+      return Object.prototype.hasOwnProperty.call(DEFAULT_CONFIGS, key);
+    }
+
     function renderSiteManagerList() {
-      const current = state.sites[state.category];
-      if (!current) return;
+      if (!siteDraft) return;
+      modalCatTitle.textContent = `${siteDraft.icon || ""} ${siteDraft.label || state.category}`;
+      deleteCatBtn.style.display = isDefaultCategory(state.category) ? "none" : "inline-flex";
 
-      modalCatTitle.textContent = `${current.icon || ''} ${current.label || state.category}`;
-      deleteCatBtn.style.display = Object.keys(DEFAULT_CONFIGS).includes(state.category) ? "none" : "block";
+      if (!siteDraft.sites.length) {
+        siteListEl.innerHTML = `<p style="font-size:0.82rem; color:var(--text-dim); text-align:center; padding:0.75rem 0;">No sites yet — add a domain below.</p>`;
+        return;
+      }
 
-      siteListEl.innerHTML = current.sites.map((site, index) => `
-        <div class="site-item ${site.enabled ? '' : 'disabled'}" data-index="${index}">
-          <div style="display:flex; align-items:center; gap:0.6rem;">
+      siteListEl.innerHTML = siteDraft.sites.map((site, index) => `
+        <div class="site-item ${site.enabled ? "" : "disabled"}" data-index="${index}">
+          <div class="site-main">
             <label class="switch" title="Toggle site ON/OFF">
-              <input type="checkbox" class="site-toggle" ${site.enabled ? "checked" : ""} data-index="${index}" />
+              <input type="checkbox" class="site-toggle" ${site.enabled ? "checked" : ""} data-index="${index}" aria-label="Enable ${escapeHtml(site.domain)}" />
               <span class="slider"></span>
             </label>
             <span class="rank-tag">#${index + 1}</span>
-            <span class="site-domain-text" style="font-size:0.85rem;">${escapeHtml(site.domain)}</span>
-            ${!site.enabled ? `<span style="font-size:0.65rem; color:var(--text-dim); border:1px solid var(--surface-border); border-radius:4px; padding:1px 4px;">MUTED</span>` : ''}
+            <span class="site-domain-text">${escapeHtml(site.domain)}</span>
+            ${!site.enabled ? `<span class="muted-tag">MUTED</span>` : ""}
           </div>
-          <div class="site-actions" style="display:flex; gap:0.25rem;">
-            <button class="site-action-btn move-up" ${index === 0 ? 'disabled style="opacity:0.3"' : ''}>▲</button>
-            <button class="site-action-btn move-down" ${index === current.sites.length - 1 ? 'disabled style="opacity:0.3"' : ''}>▼</button>
-            <button class="site-action-btn delete" title="Delete site">✕</button>
+          <div class="site-actions">
+            <button type="button" class="site-action-btn move-up" aria-label="Move ${escapeHtml(site.domain)} up" ${index === 0 ? "disabled" : ""}>▲</button>
+            <button type="button" class="site-action-btn move-down" aria-label="Move ${escapeHtml(site.domain)} down" ${index === siteDraft.sites.length - 1 ? "disabled" : ""}>▼</button>
+            <button type="button" class="site-action-btn delete" aria-label="Delete ${escapeHtml(site.domain)}" title="Delete site">✕</button>
           </div>
-        </div>
-      `).join("");
+        </div>`).join("");
     }
 
-    // ============================================================
-    // UTILITIES
-    // ============================================================
-    function escapeHtml(s) {
-      return String(s || "").replace(/[&<>"']/g, m => ({
-        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-      }[m]));
+    function openSiteManager() {
+      siteDraft = clone(state.sites[state.category]);
+      renderSiteManagerList();
+      openModal(siteModal);
     }
-    function showToast(msg) {
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-      setTimeout(() => toastEl.classList.remove("show"), 2200);
+
+    function isDraftDirty() {
+      return !!siteDraft && JSON.stringify(siteDraft) !== JSON.stringify(state.sites[state.category]);
     }
-    function showAlert(msg, type = "error") {
-      alertBox.innerHTML = `
-        <div style="background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: #fca5a5; padding: 0.85rem 1.15rem; border-radius: 8px; margin-top: 1rem; font-size: 0.85rem;">
-          ${escapeHtml(msg)}
-        </div>
-      `;
+
+    function closeSiteManager(force = false) {
+      if (!force && isDraftDirty() && !confirm("Discard your unsaved site changes?")) return;
+      siteDraft = null;
+      closeModal(siteModal);
+    }
+
+    function addSiteFromInput() {
+      if (!siteDraft) return;
+      const raw = newSiteInput.value;
+      if (!raw.trim()) return;
+      const domain = cleanDomain(raw);
+      if (!domain) { showToast("Enter a valid domain, e.g. arxiv.org", "error"); return; }
+      if (siteDraft.sites.some(s => s.domain === domain)) { showToast(`${domain} is already in the list.`, "error"); return; }
+      siteDraft.sites.push({ domain, enabled: true });
+      newSiteInput.value = "";
+      renderSiteManagerList();
+      siteListEl.scrollTop = siteListEl.scrollHeight;
     }
 
     // ============================================================
     // EVENT LISTENERS
     // ============================================================
+    function updateClearBtn() { searchForm.classList.toggle("has-text", !!queryInput.value); }
+    queryInput.addEventListener("input", updateClearBtn);
+
+    searchForm.addEventListener("submit", e => {
+      e.preventDefault();
+      search({ userInitiated: true });
+      if (!isFinePointer()) queryInput.blur(); // dismiss the on-screen keyboard so results are visible
+    });
+
+    clearBtn.addEventListener("click", () => {
+      abortActive();
+      state.searchSeq++;
+      queryInput.value = "";
+      updateClearBtn();
+      state.query = "";
+      state.rawResults = [];
+      state.searched = false;
+      syncUrlParams();
+      renderEmptyState();
+      queryInput.focus();
+    });
 
     odToggle.addEventListener("click", () => {
       state.openDirectoryMode = !state.openDirectoryMode;
-      odToggle.classList.toggle("active", state.openDirectoryMode);
       renderFilters();
       syncUrlParams();
       if (queryInput.value.trim()) search();
     });
 
+    filterToggle.addEventListener("click", () => {
+      const open = filterPanel.classList.toggle("open");
+      filterToggle.setAttribute("aria-expanded", String(open));
+      if (open) { centerActive(formatChips); centerActive(sourceChips); }
+    });
+
+    let scrubTimer = null;
     excludeFilter.value = state.excludeTerms;
     excludeFilter.addEventListener("input", e => {
       state.excludeTerms = e.target.value;
-      localStorage.setItem("omni_exclude_terms", state.excludeTerms);
-      renderResults();
+      store.set("omni_exclude_terms", state.excludeTerms);
+      const n = activeFilterCount();
+      filterCount.textContent = n;
+      filterCount.hidden = n === 0;
+      clearTimeout(scrubTimer);
+      scrubTimer = setTimeout(() => { if (state.searched) renderResults(); }, 120);
     });
 
     categoryTabs.addEventListener("click", e => {
@@ -1422,107 +2154,151 @@
       state.format = "all";
       state.source = "all";
       renderFilters();
-      if (queryInput.value.trim()) search();
+      syncUrlParams();
+      if (queryInput.value.trim()) search(); else renderEmptyState();
     });
 
-    $("add-category-btn").addEventListener("click", () => {
-      $("cat-label-input").value = "";
-      $("cat-icon-input").value = "📁";
-      $("cat-formats-input").value = "";
-      $("cat-domains-input").value = "";
-      categoryModal.classList.add("active");
-    });
-    $("close-cat-modal").addEventListener("click", () => categoryModal.classList.remove("active"));
-    $("cancel-cat-btn").addEventListener("click", () => categoryModal.classList.remove("active"));
-
-    $("save-cat-btn").addEventListener("click", () => {
-      const label = $("cat-label-input").value.trim();
-      const icon = $("cat-icon-input").value.trim() || "📁";
-      const rawFormats = $("cat-formats-input").value.trim();
-      const rawDomains = $("cat-domains-input").value.trim();
-
-      if (!label) { alert("Please enter a category name."); return; }
-
-      const slug = label.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
-      if (state.sites[slug]) { alert("A category with this key already exists."); return; }
-
-      const formats = ["all", ...new Set(rawFormats.split(",").map(f => f.trim().toLowerCase()).filter(Boolean))];
-      const sites = rawDomains.split(",").map(d => {
-        let domain = d.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-        return domain ? { domain, enabled: true } : null;
-      }).filter(Boolean);
-
-      state.sites[slug] = { label, icon, formats, sites, antiSlop: "" };
-      saveSites();
-
-      state.category = slug;
-      categoryModal.classList.remove("active");
+    sortSeg.addEventListener("click", e => {
+      const btn = e.target.closest(".seg-btn");
+      if (!btn || btn.dataset.sort === state.settings.sortMode) return;
+      state.settings.sortMode = btn.dataset.sort;
+      store.set("omni_settings_v3", JSON.stringify(state.settings));
       renderFilters();
-      showToast(`Category "${label}" created!`);
-    });
-
-    deleteCatBtn.addEventListener("click", () => {
-      if (confirm(`Delete the "${state.sites[state.category].label}" category permanently?`)) {
-        delete state.sites[state.category];
-        saveSites();
-        state.category = Object.keys(state.sites)[0] || "ebooks";
-        siteModal.classList.remove("active");
-        renderFilters();
-        showToast("Category deleted.");
-      }
+      if (state.searched) renderResults();
     });
 
     formatChips.addEventListener("click", e => {
       const chip = e.target.closest(".chip");
       if (!chip || chip.dataset.format === state.format) return;
-      formatChips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
       state.format = chip.dataset.format;
       renderFilters();
       syncUrlParams();
-      search();
+      if (queryInput.value.trim()) search();
     });
 
     sourceChips.addEventListener("click", e => {
       const chip = e.target.closest(".chip");
       if (!chip || chip.dataset.source === state.source) return;
-      sourceChips.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
-      chip.classList.add("active");
       state.source = chip.dataset.source;
       renderFilters();
       syncUrlParams();
-      
-      // FIX 1 (cont.): If there's an active query, trigger a dedicated search instead of just filtering
-      if (queryInput.value.trim()) {
-        search();
-      } else {
+      // A specific source gets its own dedicated query rather than just filtering what's loaded
+      if (queryInput.value.trim()) search();
+    });
+
+    loadMoreBtn.addEventListener("click", () => search({ append: true }));
+
+    resultsEl.addEventListener("click", async e => {
+      const copyBtn = e.target.closest(".copy-btn");
+      if (copyBtn) {
+        const ok = await copyText(copyBtn.dataset.url);
+        showToast(ok ? "Link copied to clipboard!" : "Couldn't copy — long-press the link instead.", ok ? undefined : "error");
+        return;
+      }
+      const recent = e.target.closest("[data-recent]");
+      if (recent) {
+        queryInput.value = recent.dataset.recent;
+        updateClearBtn();
+        search({ userInitiated: true });
+        return;
+      }
+      const action = e.target.closest("[data-action]");
+      if (!action) return;
+      if (action.dataset.action === "settings") $("settings-btn").click();
+      else if (action.dataset.action === "clear-history") {
+        state.history = [];
+        store.set(HISTORY_KEY, "[]");
+        renderEmptyState();
+      } else if (action.dataset.action === "clear-scrub") {
+        state.excludeTerms = "";
+        excludeFilter.value = "";
+        store.set("omni_exclude_terms", "");
+        renderFilters();
         renderResults();
       }
     });
 
-    goBtn.addEventListener("click", () => search());
-    queryInput.addEventListener("keydown", e => { if (e.key === "Enter") search(); });
-    loadMoreBtn.addEventListener("click", () => search(true));
+    // ----- Category creation -----
+    $("add-category-btn").addEventListener("click", () => {
+      $("cat-label-input").value = "";
+      $("cat-icon-input").value = "📁";
+      $("cat-formats-input").value = "";
+      $("cat-domains-input").value = "";
+      openModal(categoryModal, isFinePointer() ? $("cat-label-input") : null);
+    });
+    $("close-cat-modal").addEventListener("click", () => closeModal(categoryModal));
+    $("cancel-cat-btn").addEventListener("click", () => closeModal(categoryModal));
 
-    resultsEl.addEventListener("click", e => {
-      const copyBtn = e.target.closest(".copy-btn");
-      if (copyBtn) {
-        navigator.clipboard.writeText(copyBtn.dataset.url);
-        showToast("Link copied to clipboard!");
+    function saveCategory() {
+      const label = $("cat-label-input").value.trim();
+      const icon = $("cat-icon-input").value.trim() || "📁";
+      const rawFormats = $("cat-formats-input").value;
+      const rawDomains = $("cat-domains-input").value;
+
+      if (!label) { showToast("Please enter a category name.", "error"); $("cat-label-input").focus(); return; }
+
+      // Non-Latin labels (e.g. Bangla) would slug to "-", so fall back to a generated key
+      let slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+      if (!slug) slug = "cat-" + Date.now().toString(36);
+      let unique = slug, n = 2;
+      while (Object.prototype.hasOwnProperty.call(state.sites, unique)) unique = `${slug}-${n++}`;
+      slug = unique;
+
+      const formats = ["all", ...new Set(
+        rawFormats.split(",").map(f => f.trim().toLowerCase().replace(/^\./, "")).filter(f => f && f !== "all")
+      )];
+      const domainTokens = rawDomains.split(",").map(d => d.trim()).filter(Boolean);
+      const sites = [];
+      let skipped = 0;
+      domainTokens.forEach(t => {
+        const d = cleanDomain(t);
+        if (!d) skipped++; else if (!sites.some(s => s.domain === d)) sites.push({ domain: d, enabled: true });
+      });
+
+      state.sites[slug] = { label, icon, formats, sites, antiSlop: "" };
+      saveSites();
+
+      state.category = slug;
+      state.format = "all";
+      state.source = "all";
+      closeModal(categoryModal);
+      renderFilters();
+      syncUrlParams();
+      if (queryInput.value.trim()) search(); else renderEmptyState();
+      showToast(skipped ? `Category created — ${skipped} invalid domain${skipped > 1 ? "s" : ""} skipped.` : `Category "${label}" created!`);
+    }
+    $("save-cat-btn").addEventListener("click", saveCategory);
+    categoryModal.addEventListener("keydown", e => {
+      if (e.key === "Enter" && e.target.tagName === "INPUT") { e.preventDefault(); saveCategory(); }
+    });
+
+    deleteCatBtn.addEventListener("click", () => {
+      const cat = state.sites[state.category];
+      if (!cat || isDefaultCategory(state.category)) return;
+      if (confirm(`Delete the "${cat.label}" category permanently?`)) {
+        delete state.sites[state.category];
+        saveSites();
+        state.category = Object.keys(state.sites)[0] || "ebooks";
+        state.format = "all";
+        state.source = "all";
+        closeSiteManager(true);
+        renderFilters();
+        syncUrlParams();
+        if (queryInput.value.trim()) search(); else renderEmptyState();
+        showToast("Category deleted.");
       }
     });
 
-    $("manage-sites-btn").addEventListener("click", () => {
-      renderSiteManagerList();
-      siteModal.classList.add("active");
-    });
-    $("close-site-modal").addEventListener("click", () => siteModal.classList.remove("active"));
+    // ----- Site manager -----
+    $("manage-sites-btn").addEventListener("click", openSiteManager);
+    $("close-site-modal").addEventListener("click", () => closeSiteManager());
 
     siteListEl.addEventListener("click", e => {
+      if (!siteDraft) return;
       const item = e.target.closest(".site-item");
       if (!item) return;
       const idx = parseInt(item.dataset.index, 10);
-      const sites = state.sites[state.category].sites;
+      const sites = siteDraft.sites;
 
       if (e.target.closest(".move-up") && idx > 0) {
         [sites[idx - 1], sites[idx]] = [sites[idx], sites[idx - 1]];
@@ -1537,42 +2313,32 @@
     });
 
     siteListEl.addEventListener("change", e => {
-      if (e.target.classList.contains("site-toggle")) {
-        const idx = parseInt(e.target.dataset.index, 10);
-        state.sites[state.category].sites[idx].enabled = e.target.checked;
-        const siteItem = e.target.closest(".site-item");
-        if (siteItem) {
-          siteItem.classList.toggle("disabled", !e.target.checked);
-        }
-      }
+      if (!siteDraft || !e.target.classList.contains("site-toggle")) return;
+      const idx = parseInt(e.target.dataset.index, 10);
+      siteDraft.sites[idx].enabled = e.target.checked;
+      renderSiteManagerList();
     });
 
-    $("add-site-btn").addEventListener("click", () => {
-      let val = newSiteInput.value.trim().toLowerCase();
-      val = val.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-      if (!val) return;
-
-      const sites = state.sites[state.category].sites;
-      if (!sites.some(s => s.domain === val)) {
-        sites.push({ domain: val, enabled: true });
-        newSiteInput.value = "";
-        renderSiteManagerList();
-      }
-    });
+    $("add-site-btn").addEventListener("click", addSiteFromInput);
+    newSiteInput.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addSiteFromInput(); } });
 
     $("save-sites-btn").addEventListener("click", () => {
+      if (!siteDraft) return;
+      state.sites[state.category] = siteDraft;
       saveSites();
+      closeSiteManager(true);
       renderFilters();
-      siteModal.classList.remove("active");
       if (queryInput.value.trim()) search();
+      showToast("Sites updated.");
     });
 
     $("reset-sites-btn").addEventListener("click", () => {
-      if (DEFAULT_CONFIGS[state.category]) {
-        state.sites[state.category] = JSON.parse(JSON.stringify(DEFAULT_CONFIGS[state.category]));
+      if (!siteDraft) return;
+      if (isDefaultCategory(state.category)) {
+        siteDraft = clone(DEFAULT_CONFIGS[state.category]);
         renderSiteManagerList();
       } else {
-        alert("This custom category has no built-in defaults.");
+        showToast("This custom category has no built-in defaults.", "error");
       }
     });
 
@@ -1581,85 +2347,113 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `omnisearch-config.json`;
+      a.download = `omnisearch-config-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
 
     $("import-sites-trigger").addEventListener("click", () => $("import-file-input").click());
     $("import-file-input").addEventListener("change", e => {
-      const file = e.target.files[0];
+      const input = e.target;
+      const file = input.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = ev => {
         try {
-          const parsed = JSON.parse(ev.target.result);
-          if (validateConfig(parsed)) {
-            state.sites = parsed;
-            saveSites();
-            renderFilters();
-            renderSiteManagerList();
-            showToast("Configuration imported successfully!");
-          } else {
-            alert("Invalid configuration shape.");
-          }
-        } catch (_) { alert("Failed to parse JSON file."); }
+          const normalized = normalizeConfig(JSON.parse(ev.target.result));
+          if (!normalized) { showToast("Invalid configuration shape.", "error"); return; }
+          state.sites = normalized;
+          saveSites();
+          if (!state.sites[state.category]) state.category = Object.keys(state.sites)[0];
+          state.format = "all";
+          state.source = "all";
+          siteDraft = clone(state.sites[state.category]);
+          renderFilters();
+          renderSiteManagerList();
+          showToast("Configuration imported successfully!");
+        } catch (_) { showToast("Failed to parse JSON file.", "error"); }
       };
+      reader.onerror = () => showToast("Couldn't read that file.", "error");
       reader.readAsText(file);
+      input.value = ""; // allow re-importing the same file
     });
 
+    // ----- Settings -----
     $("settings-btn").addEventListener("click", () => {
       $("setting-provider-mode").value = state.settings.providerMode;
       $("setting-api-key").value = getApiKey();
+      $("setting-api-key").type = "password";
+      $("toggle-key-btn").textContent = "Show";
+      $("toggle-key-btn").setAttribute("aria-pressed", "false");
       $("setting-anti-slop").checked = state.settings.antiSlop;
       $("setting-covers").checked = state.settings.showCovers;
       $("setting-metadata").checked = state.settings.extractMetadata;
-      settingsModal.classList.add("active");
+      openModal(settingsModal);
     });
-    $("close-settings-modal").addEventListener("click", () => settingsModal.classList.remove("active"));
+    $("close-settings-modal").addEventListener("click", () => closeModal(settingsModal));
+
+    $("toggle-key-btn").addEventListener("click", e => {
+      const field = $("setting-api-key");
+      const show = field.type === "password";
+      field.type = show ? "text" : "password";
+      e.currentTarget.textContent = show ? "Hide" : "Show";
+      e.currentTarget.setAttribute("aria-pressed", String(show));
+    });
 
     $("save-settings-btn").addEventListener("click", () => {
+      const prevMode = state.settings.providerMode;
+      const prevKey = getApiKey();
+      const prevSlop = state.settings.antiSlop;
+
       state.settings.providerMode = $("setting-provider-mode").value;
       state.settings.antiSlop = $("setting-anti-slop").checked;
       state.settings.showCovers = $("setting-covers").checked;
       state.settings.extractMetadata = $("setting-metadata").checked;
 
       const rawKey = $("setting-api-key").value.trim().replace(/^["']|["']$/g, "");
-      localStorage.setItem("serper_key", rawKey);
-      localStorage.setItem("omni_settings_v3", JSON.stringify(state.settings));
+      store.set("serper_key", rawKey);
+      store.set("omni_settings_v3", JSON.stringify(state.settings));
 
-      settingsModal.classList.remove("active");
+      closeModal(settingsModal);
       showToast("Settings applied & saved!");
-      if (state.rawResults.length) renderResults();
+
+      const changedBackend = prevMode !== state.settings.providerMode || prevKey !== rawKey || prevSlop !== state.settings.antiSlop;
+      if (queryInput.value.trim() && changedBackend) search();
+      else if (state.searched) renderResults();
     });
 
+    // ============================================================
+    // INIT
+    // ============================================================
     function loadFromUrl() {
       const params = new URLSearchParams(window.location.search);
-      const q = params.get("q");
+      const q = (params.get("q") || "").trim();
       const cat = params.get("cat");
       const fmt = params.get("fmt");
       const src = params.get("src");
-      const od  = params.get("od");
 
-      if (cat && state.sites[cat]) state.category = cat;
-      if (fmt) state.format = fmt;
-      if (src) state.source = src;
-      if (od === "1") {
-        state.openDirectoryMode = true;
-        odToggle.classList.add("active");
-      }
+      if (cat && Object.prototype.hasOwnProperty.call(state.sites, cat)) state.category = cat;
+      const current = state.sites[state.category] || Object.values(state.sites)[0];
+      if (fmt && current && current.formats.includes(fmt)) state.format = fmt;
+      if (src && current && current.sites.some(s => s.enabled && s.domain === src)) state.source = src;
+      if (params.get("od") === "1") state.openDirectoryMode = true;
 
       renderFilters();
 
       if (q) {
         queryInput.value = q;
+        updateClearBtn();
         search();
+      } else {
+        renderEmptyState();
+        if (isFinePointer()) queryInput.focus(); // no autofocus on touch: it would pop the keyboard on load
       }
     }
 
     loadFromUrl();
+  })();
   </script>
 </body>
 </html>
---- END OF FILE Paste September 26, 2026 - 10:36PM ---
-check now
